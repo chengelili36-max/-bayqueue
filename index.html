@@ -196,6 +196,66 @@ footer { border-top: 1px solid var(--border); padding: 28px 48px; display: flex;
   .score-cards { grid-template-columns: repeat(3, 1fr); }
   .nav-stat { display: none; }
 }
+/* ── RESUME UPLOAD ── */
+.resume-upload-box {
+  border: 1.5px dashed var(--border2);
+  padding: 36px 24px;
+  text-align: center;
+  margin-bottom: 8px;
+  transition: border-color 0.2s, background 0.2s;
+  cursor: pointer;
+  position: relative;
+}
+.resume-upload-box:hover { border-color: var(--accent); background: rgba(232,255,107,0.03); }
+.resume-upload-box.dragover { border-color: var(--accent); background: rgba(232,255,107,0.06); }
+.resume-icon { font-size: 32px; margin-bottom: 12px; }
+.resume-title { font-size: 15px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
+.resume-sub { font-size: 12px; color: var(--muted); margin-bottom: 20px; line-height: 1.6; }
+.resume-btn {
+  background: transparent;
+  border: 1px solid var(--border2);
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 9px 24px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.resume-btn:hover { background: var(--accent); color: #0a0a0f; }
+.resume-loading { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 8px 0; }
+.resume-spinner {
+  width: 32px; height: 32px;
+  border: 2px solid var(--border2);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.resume-loading-text { font-family: var(--mono); font-size: 13px; color: var(--muted); }
+.resume-done { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.resume-done-icon { font-size: 32px; color: var(--accent2); }
+.resume-done-text { font-size: 14px; font-weight: 500; color: var(--accent2); }
+.resume-reupload {
+  background: transparent; border: 1px solid var(--border);
+  color: var(--muted); font-family: var(--mono); font-size: 11px;
+  padding: 6px 16px; cursor: pointer; transition: all 0.15s; margin-top: 4px;
+}
+.resume-reupload:hover { color: var(--text); border-color: var(--border2); }
+.form-divider {
+  display: flex; align-items: center; gap: 12px;
+  margin: 20px 0;
+  font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 0.1em;
+}
+.form-divider::before, .form-divider::after {
+  content: ''; flex: 1; height: 1px; background: var(--border);
+}
+/* highlight fields that were auto-filled */
+.form-group input.autofilled,
+.form-group select.autofilled {
+  border-color: var(--accent2);
+  background: rgba(107,255,204,0.04);
+  transition: border-color 0.3s, background 0.3s;
+}
 </style>
 </head>
 <body>
@@ -316,6 +376,34 @@ footer { border-top: 1px solid var(--border); padding: 28px 48px; display: flex;
     <div class="form-header">
       <h2 data-zh="填写你的信息" data-en="Enter Your Profile">填写你的信息</h2>
       <p data-zh="我们用这些数据计算你在湾区求职者中的排名位置" data-en="We use this to calculate your position among Bay Area job seekers">我们用这些数据计算你在湾区求职者中的排名位置</p>
+    </div>
+
+    <!-- RESUME UPLOAD -->
+    <div class="resume-upload-box" id="resumeBox">
+      <input type="file" id="resumeFile" accept=".pdf,.doc,.docx,.txt" style="display:none" onchange="handleResumeUpload(this)">
+      <div class="resume-idle" id="resumeIdle">
+        <div class="resume-icon">📄</div>
+        <div class="resume-title" data-zh="上传简历，自动填写表单" data-en="Upload Resume — Auto-fill Form">上传简历，自动填写表单</div>
+        <div class="resume-sub" data-zh="支持 PDF · 拖拽或点击上传 · AI 自动识别 YoE、技术栈、学历" data-en="PDF supported · Drag & drop or click · AI extracts YoE, skills, education">支持 PDF · 拖拽或点击上传 · AI 自动识别 YoE、技术栈、学历</div>
+        <button class="resume-btn" type="button" onclick="document.getElementById('resumeFile').click()">
+          <span data-zh="选择文件" data-en="Choose File">选择文件</span>
+        </button>
+      </div>
+      <div class="resume-loading" id="resumeLoading" style="display:none">
+        <div class="resume-spinner"></div>
+        <div class="resume-loading-text" data-zh="AI 正在解析简历..." data-en="AI is parsing your resume...">AI 正在解析简历...</div>
+      </div>
+      <div class="resume-done" id="resumeDone" style="display:none">
+        <div class="resume-done-icon">✓</div>
+        <div class="resume-done-text" data-zh="解析完成，已自动填写表单" data-en="Parsed! Form auto-filled">解析完成，已自动填写表单</div>
+        <button class="resume-reupload" type="button" onclick="resetResume()">
+          <span data-zh="重新上传" data-en="Re-upload">重新上传</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="form-divider">
+      <span data-zh="或手动填写" data-en="or fill in manually">或手动填写</span>
     </div>
 
     <div class="form-grid">
@@ -634,54 +722,132 @@ function addCustomChip() {
   input.focus();
 }
 
+// ── SUPABASE ──
+const SUPABASE_URL = 'https://vofmiphgvwtcdpprhswh.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZvZm1pcGhndnd0Y2RwcHJoc3doIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzNDM0OTEsImV4cCI6MjA5NTkxOTQ5MX0.VypPvPgwpyPSy2SCb-VzuNieuRQlNF40W_q7eZyKuwU';
+
+async function sbFetch(path, options = {}) {
+  const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': options.prefer || '',
+      ...options.headers
+    },
+    method: options.method || 'GET',
+    body: options.body ? JSON.stringify(options.body) : undefined
+  });
+  if (!res.ok) throw new Error(await res.text());
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
+}
+
 // ── SCORING ──
 const eduScores = [0, 5, 18, 24, 30, 22, 10];
-const TOTAL = 2847;
 let lastResult = null;
 
-function calculateRanking() {
-  const yoe = parseInt(document.getElementById('fyoe').value);
-  const eduIdx = parseInt(document.getElementById('fedu').value);
-  const activeChips = document.querySelectorAll('#techGrid .tech-chip.active');
+function computeScore(yoe, eduIdx, activeChips) {
   let techScore = 0;
   activeChips.forEach(c => techScore += parseInt(c.getAttribute('data-v')));
   techScore = Math.min(techScore, 20);
   const yoeScore = Math.min(Math.round(yoe * 2.5), 50);
   const eduScore = eduScores[eduIdx];
-  const total = yoeScore + eduScore + techScore;
-  const percentile = Math.min(97, Math.round((total / 100) * 90 + 10));
-  const position = Math.max(1, Math.round(TOTAL * (1 - percentile / 100)));
-  const ahead = position - 1;
-  lastResult = { position, total, yoeScore, eduScore, percentile, ahead };
+  return { total: yoeScore + eduScore + techScore, yoeScore, eduScore, techScore };
+}
 
-  document.getElementById('result').style.display = 'block';
-  document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
-  setTimeout(() => {
-    document.getElementById('rQueueNum').textContent = '#' + position.toLocaleString();
-    document.getElementById('rTotal').textContent = TOTAL.toLocaleString();
-    document.getElementById('rPercentile').textContent = percentile;
-    document.getElementById('rAhead').textContent = ahead.toLocaleString();
-    document.getElementById('rPct2').textContent = percentile;
-    document.getElementById('rScoreTotal').textContent = total;
-    document.getElementById('rYoe').textContent = yoeScore;
-    document.getElementById('rEdu').textContent = eduScore;
-    updateResultLabels();
-    setTimeout(() => { document.getElementById('rProgressFill').style.width = percentile + '%'; }, 200);
-    buildDots(position);
-  }, 300);
+async function calculateRanking() {
+  // disable button & show loading
+  const btn = document.querySelector('.submit-btn');
+  const originalText = btn.innerHTML;
+  btn.innerHTML = currentLang === 'zh' ? '⏳ 计算中...' : '⏳ Calculating...';
+  btn.disabled = true;
+
+  const yoe      = parseInt(document.getElementById('fyoe').value);
+  const eduIdx   = parseInt(document.getElementById('fedu').value);
+  const name     = document.getElementById('fname').value.trim();
+  const company  = document.getElementById('fcompany').value.trim();
+  const role     = document.getElementById('frole').value.trim();
+  const activeChips = document.querySelectorAll('#techGrid .tech-chip.active');
+  const techStack = [...activeChips].map(c => c.textContent.trim());
+
+  const { total, yoeScore, eduScore } = computeScore(yoe, eduIdx, activeChips);
+
+  try {
+    // 1. Insert this user
+    await sbFetch('job_seekers', {
+      method: 'POST',
+      prefer: 'return=minimal',
+      body: { name: name || null, company: company || null, education: eduIdx, role: role || null, yoe, tech_stack: techStack, score: total }
+    });
+
+    // 2. Get total count and rank (how many have score >= this user's score)
+    const countRes  = await sbFetch('job_seekers?select=id&score=gte.' + total);
+    const totalRes  = await sbFetch('job_seekers?select=id');
+    const totalUsers = totalRes.length;
+    const position  = countRes.length; // people with >= same score = position
+    const ahead     = position - 1;
+    const percentile = Math.min(99, Math.round(((totalUsers - position) / Math.max(totalUsers, 1)) * 100));
+
+    lastResult = { position, total, yoeScore, eduScore, percentile, ahead, totalUsers };
+
+    // 3. Show result
+    document.getElementById('result').style.display = 'block';
+    document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
+
+    setTimeout(() => {
+      document.getElementById('rQueueNum').textContent = '#' + position.toLocaleString();
+      document.getElementById('rTotal').textContent = totalUsers.toLocaleString();
+      document.getElementById('rPercentile').textContent = percentile;
+      document.getElementById('rAhead').textContent = ahead.toLocaleString();
+      document.getElementById('rPct2').textContent = percentile;
+      document.getElementById('rScoreTotal').textContent = total;
+      document.getElementById('rYoe').textContent = yoeScore;
+      document.getElementById('rEdu').textContent = eduScore;
+      updateResultLabels();
+      setTimeout(() => { document.getElementById('rProgressFill').style.width = percentile + '%'; }, 200);
+      buildDots(position, totalUsers);
+    }, 300);
+
+  } catch (err) {
+    console.error(err);
+    // fallback to local calculation if DB fails
+    const totalFallback = 2847;
+    const pct = Math.min(97, Math.round((total / 100) * 90 + 10));
+    const pos = Math.max(1, Math.round(totalFallback * (1 - pct / 100)));
+    lastResult = { position: pos, total, yoeScore, eduScore, percentile: pct, ahead: pos - 1, totalUsers: totalFallback };
+    document.getElementById('result').style.display = 'block';
+    document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
+    setTimeout(() => {
+      document.getElementById('rQueueNum').textContent = '#' + pos.toLocaleString();
+      document.getElementById('rTotal').textContent = totalFallback.toLocaleString();
+      document.getElementById('rPercentile').textContent = pct;
+      document.getElementById('rAhead').textContent = (pos - 1).toLocaleString();
+      document.getElementById('rPct2').textContent = pct;
+      document.getElementById('rScoreTotal').textContent = total;
+      document.getElementById('rYoe').textContent = yoeScore;
+      document.getElementById('rEdu').textContent = eduScore;
+      updateResultLabels();
+      setTimeout(() => { document.getElementById('rProgressFill').style.width = pct + '%'; }, 200);
+      buildDots(pos, totalFallback);
+    }, 300);
+  } finally {
+    btn.innerHTML = originalText;
+    btn.disabled = false;
+  }
 }
 
 function updateResultLabels() {
   if (!lastResult) return;
-  const { ahead } = lastResult;
+  const { ahead, totalUsers, percentile } = lastResult;
   if (currentLang === 'zh') {
     document.getElementById('rAheadLabel').innerHTML = '前面有 <strong id="rAhead">' + ahead.toLocaleString() + '</strong> 人';
   } else {
     document.getElementById('rAheadLabel').innerHTML = '<strong id="rAhead">' + ahead.toLocaleString() + '</strong> people ahead of you';
   }
   const sub = document.getElementById('rQueueSub');
-  const pct = document.getElementById('rPercentile').textContent;
-  const total = document.getElementById('rTotal').textContent;
+  const total = (totalUsers || 2847).toLocaleString();
+  const pct = percentile;
   if (currentLang === 'zh') {
     sub.innerHTML = '共 <span id="rTotal">' + total + '</span> 名活跃求职者 · 你击败了 <span id="rPercentile" style="color:var(--accent)">' + pct + '</span>% 的人';
   } else {
@@ -689,11 +855,11 @@ function updateResultLabels() {
   }
 }
 
-function buildDots(position) {
+function buildDots(position, totalUsers) {
   const field = document.getElementById('dotsField');
   field.innerHTML = '';
   const shown = 100;
-  const step = Math.max(1, Math.floor(TOTAL / shown));
+  const step = Math.max(1, Math.floor((totalUsers || 2847) / shown));
   for (let i = 0; i < shown; i++) {
     const idx = i * step + 1;
     const d = document.createElement('div');
@@ -705,6 +871,142 @@ function buildDots(position) {
 function copyLink() {
   navigator.clipboard.writeText(window.location.href).then(() => {
     alert(currentLang === 'zh' ? '链接已复制！' : 'Link copied!');
+  });
+}
+
+// ── RESUME UPLOAD & PARSE ──
+
+// drag & drop
+const resumeBox = document.getElementById('resumeBox');
+resumeBox.addEventListener('dragover', e => { e.preventDefault(); resumeBox.classList.add('dragover'); });
+resumeBox.addEventListener('dragleave', () => resumeBox.classList.remove('dragover'));
+resumeBox.addEventListener('drop', e => {
+  e.preventDefault();
+  resumeBox.classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file) parseResume(file);
+});
+resumeBox.addEventListener('click', e => {
+  if (e.target.closest('button')) return;
+  document.getElementById('resumeFile').click();
+});
+
+function handleResumeUpload(input) {
+  const file = input.files[0];
+  if (file) parseResume(file);
+}
+
+function resetResume() {
+  document.getElementById('resumeIdle').style.display = '';
+  document.getElementById('resumeLoading').style.display = 'none';
+  document.getElementById('resumeDone').style.display = 'none';
+  document.getElementById('resumeFile').value = '';
+}
+
+async function parseResume(file) {
+  document.getElementById('resumeIdle').style.display = 'none';
+  document.getElementById('resumeLoading').style.display = '';
+  document.getElementById('resumeDone').style.display = 'none';
+
+  try {
+    const base64 = await fileToBase64(file);
+
+    // Call our Vercel serverless proxy (keeps API key secret)
+    const response = await fetch('/api/parse-resume', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fileBase64: base64,
+        fileType: file.type,
+        fileName: file.name
+      })
+    });
+
+    if (!response.ok) throw new Error('API error ' + response.status);
+    const parsed = await response.json();
+
+    autofillForm(parsed);
+
+    document.getElementById('resumeLoading').style.display = 'none';
+    document.getElementById('resumeDone').style.display = '';
+
+  } catch (err) {
+    console.error('Resume parse error:', err);
+    document.getElementById('resumeLoading').style.display = 'none';
+    document.getElementById('resumeIdle').style.display = '';
+    alert(currentLang === 'zh' ? '解析失败，请手动填写或重试' : 'Parse failed — please fill manually or retry');
+  }
+}
+
+function autofillForm(data) {
+  function flash(el) {
+    el.classList.add('autofilled');
+    setTimeout(() => el.classList.remove('autofilled'), 3000);
+  }
+
+  if (data.name) {
+    const el = document.getElementById('fname');
+    el.value = data.name;
+    flash(el);
+  }
+  if (data.company) {
+    document.getElementById('fcompanyInput').value = data.company;
+    document.getElementById('fcompany').value = data.company;
+    flash(document.getElementById('fcompanyInput'));
+  }
+  if (data.role) {
+    document.getElementById('froleInput').value = data.role;
+    document.getElementById('frole').value = data.role;
+    flash(document.getElementById('froleInput'));
+  }
+  if (typeof data.yoe === 'number') {
+    const slider = document.getElementById('fyoe');
+    slider.value = Math.min(25, Math.max(0, data.yoe));
+    document.getElementById('yoeDisplay').textContent = slider.value;
+    flash(slider);
+  }
+  if (typeof data.education === 'number') {
+    const sel = document.getElementById('fedu');
+    sel.value = data.education;
+    flash(sel);
+  }
+  if (Array.isArray(data.tech_stack) && data.tech_stack.length > 0) {
+    // deselect all first
+    document.querySelectorAll('#techGrid .tech-chip').forEach(c => c.classList.remove('active'));
+    // remove custom chips
+    document.querySelectorAll('#techGrid .tech-chip.custom').forEach(c => c.remove());
+
+    const knownChips = document.querySelectorAll('#techGrid .tech-chip');
+    data.tech_stack.forEach(skill => {
+      const skillLower = skill.toLowerCase();
+      // try to match existing chip
+      let matched = false;
+      knownChips.forEach(chip => {
+        if (chip.textContent.toLowerCase().includes(skillLower) ||
+            skillLower.includes(chip.textContent.toLowerCase().split('/')[0].trim())) {
+          chip.classList.add('active');
+          matched = true;
+        }
+      });
+      // if no match, add as custom chip
+      if (!matched && skill.length > 1 && skill.length < 30) {
+        const chip = document.createElement('span');
+        chip.className = 'tech-chip custom active';
+        chip.setAttribute('data-v', '2');
+        chip.textContent = skill;
+        chip.onclick = () => toggleChip(chip);
+        document.getElementById('techGrid').appendChild(chip);
+      }
+    });
+  }
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
   });
 }
 </script>
