@@ -24,16 +24,8 @@
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--sans);
-  font-weight: 300;
-  line-height: 1.6;
-  min-height: 100vh;
-}
+body { background: var(--bg); color: var(--text); font-family: var(--sans); font-weight: 300; line-height: 1.6; min-height: 100vh; }
 
-/* ── NOISE OVERLAY ── */
 body::before {
   content: '';
   position: fixed; inset: 0;
@@ -41,545 +33,155 @@ body::before {
   pointer-events: none; z-index: 0;
 }
 
-/* ── TICKER ── */
-.ticker-wrap {
-  background: var(--accent);
-  color: #0a0a0f;
+/* ── LANG TOGGLE ── */
+.lang-toggle {
+  display: flex; align-items: center; gap: 0;
+  border: 1px solid var(--border2);
+  overflow: hidden;
+}
+.lang-btn {
   font-family: var(--mono);
   font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.05em;
-  overflow: hidden;
-  white-space: nowrap;
-  position: relative;
-  z-index: 10;
+  letter-spacing: 0.1em;
+  padding: 7px 14px;
+  background: transparent;
+  color: var(--muted);
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s;
 }
-.ticker-inner {
-  display: inline-block;
-  animation: ticker 30s linear infinite;
-  padding: 8px 0;
-}
-@keyframes ticker {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
-}
+.lang-btn.active { background: var(--accent); color: #0a0a0f; font-weight: 500; }
+.lang-btn:not(.active):hover { color: var(--text); background: var(--surface2); }
+
+/* ── TICKER ── */
+.ticker-wrap { background: var(--accent); color: #0a0a0f; font-family: var(--mono); font-size: 11px; font-weight: 500; letter-spacing: 0.05em; overflow: hidden; white-space: nowrap; position: relative; z-index: 10; }
+.ticker-inner { display: inline-block; animation: ticker 30s linear infinite; padding: 8px 0; }
+@keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 
 /* ── NAV ── */
-nav {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 20px 48px;
-  border-bottom: 1px solid var(--border);
-  position: relative; z-index: 10;
-}
-.logo {
-  font-family: var(--mono);
-  font-size: 14px;
-  letter-spacing: 0.15em;
-  color: var(--accent);
-}
-.nav-stat {
-  font-family: var(--mono);
-  font-size: 12px;
-  color: var(--muted);
-}
+nav { display: flex; align-items: center; justify-content: space-between; padding: 20px 48px; border-bottom: 1px solid var(--border); position: relative; z-index: 10; }
+.logo { font-family: var(--mono); font-size: 14px; letter-spacing: 0.15em; color: var(--accent); }
+.nav-right { display: flex; align-items: center; gap: 24px; }
+.nav-stat { font-family: var(--mono); font-size: 12px; color: var(--muted); }
 .nav-stat span { color: var(--danger); font-weight: 500; }
 
 /* ── HERO ── */
-.hero {
-  position: relative;
-  padding: 80px 48px 60px;
-  max-width: 1100px;
-  margin: 0 auto;
-  z-index: 1;
-}
-.hero-eyebrow {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.2em;
-  color: var(--accent);
-  text-transform: uppercase;
-  margin-bottom: 24px;
-  display: flex; align-items: center; gap: 10px;
-}
-.hero-eyebrow::before {
-  content: '';
-  display: inline-block;
-  width: 24px; height: 1px;
-  background: var(--accent);
-}
-h1 {
-  font-family: var(--serif);
-  font-size: clamp(40px, 6vw, 80px);
-  line-height: 1.05;
-  font-weight: 400;
-  color: var(--text);
-  margin-bottom: 24px;
-  max-width: 700px;
-}
-h1 em {
-  font-style: italic;
-  color: var(--accent);
-}
-.hero-sub {
-  font-size: 16px;
-  color: var(--muted);
-  max-width: 480px;
-  line-height: 1.7;
-  margin-bottom: 48px;
-}
-.hero-cta {
-  display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
-}
-.btn-primary {
-  background: var(--accent);
-  color: #0a0a0f;
-  border: none;
-  padding: 14px 32px;
-  font-family: var(--mono);
-  font-size: 13px;
-  font-weight: 500;
-  letter-spacing: 0.05em;
-  cursor: pointer;
-  transition: all 0.2s;
-  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
-}
+.hero { position: relative; padding: 80px 48px 60px; max-width: 1100px; margin: 0 auto; z-index: 1; }
+.hero-eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em; color: var(--accent); text-transform: uppercase; margin-bottom: 24px; display: flex; align-items: center; gap: 10px; }
+.hero-eyebrow::before { content: ''; display: inline-block; width: 24px; height: 1px; background: var(--accent); }
+h1 { font-family: var(--serif); font-size: clamp(40px, 6vw, 80px); line-height: 1.05; font-weight: 400; color: var(--text); margin-bottom: 24px; max-width: 700px; }
+h1 em { font-style: italic; color: var(--accent); }
+.hero-sub { font-size: 16px; color: var(--muted); max-width: 480px; line-height: 1.7; margin-bottom: 48px; }
+.hero-cta { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.btn-primary { background: var(--accent); color: #0a0a0f; border: none; padding: 14px 32px; font-family: var(--mono); font-size: 13px; font-weight: 500; letter-spacing: 0.05em; cursor: pointer; transition: all 0.2s; clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px)); }
 .btn-primary:hover { background: #fff; transform: translateY(-2px); }
-.hero-note {
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--muted);
-}
+.hero-note { font-family: var(--mono); font-size: 11px; color: var(--muted); }
 
-/* ── LIVE STATS BAR ── */
-.stats-bar {
-  border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  max-width: 1100px;
-  margin: 0 auto;
-  position: relative; z-index: 1;
-}
-.stat-item {
-  padding: 28px 48px;
-  border-right: 1px solid var(--border);
-}
+/* ── STATS BAR ── */
+.stats-bar { border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); display: grid; grid-template-columns: repeat(4, 1fr); max-width: 1100px; margin: 0 auto; position: relative; z-index: 1; }
+.stat-item { padding: 28px 48px; border-right: 1px solid var(--border); }
 .stat-item:last-child { border-right: none; }
-.stat-num {
-  font-family: var(--mono);
-  font-size: 32px;
-  font-weight: 500;
-  color: var(--accent);
-  display: block;
-  margin-bottom: 4px;
-}
-.stat-label {
-  font-size: 12px;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-}
+.stat-num { font-family: var(--mono); font-size: 32px; font-weight: 500; color: var(--accent); display: block; margin-bottom: 4px; }
+.stat-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
 
-/* ── LAYOFFS TABLE ── */
-.section {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 60px 48px;
-  position: relative; z-index: 1;
-}
-.section-title {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.2em;
-  color: var(--muted);
-  text-transform: uppercase;
-  margin-bottom: 28px;
-  display: flex; align-items: center; gap: 12px;
-}
-.section-title::after {
-  content: ''; flex: 1; height: 1px; background: var(--border);
-}
-.layoffs-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-}
-.layoffs-table th {
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  color: var(--muted);
-  text-transform: uppercase;
-  padding: 10px 16px;
-  text-align: left;
-  border-bottom: 1px solid var(--border);
-}
-.layoffs-table td {
-  padding: 14px 16px;
-  border-bottom: 1px solid var(--border);
-  vertical-align: middle;
-}
+/* ── TABLE ── */
+.section { max-width: 1100px; margin: 0 auto; padding: 60px 48px; position: relative; z-index: 1; }
+.section-title { font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em; color: var(--muted); text-transform: uppercase; margin-bottom: 28px; display: flex; align-items: center; gap: 12px; }
+.section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.layoffs-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.layoffs-table th { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; padding: 10px 16px; text-align: left; border-bottom: 1px solid var(--border); }
+.layoffs-table td { padding: 14px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; }
 .layoffs-table tr:hover td { background: var(--surface2); }
 .company-name { font-weight: 500; color: var(--text); }
 .company-city { font-family: var(--mono); font-size: 11px; color: var(--muted); }
-.cut-num {
-  font-family: var(--mono);
-  font-weight: 500;
-  color: var(--danger);
-}
-.roles-tag {
-  display: inline-block;
-  background: var(--surface2);
-  border: 1px solid var(--border2);
-  color: var(--muted);
-  font-size: 10px;
-  font-family: var(--mono);
-  padding: 3px 8px;
-  margin: 2px;
-}
-.join-btn {
-  background: transparent;
-  border: 1px solid var(--border2);
-  color: var(--accent);
-  font-family: var(--mono);
-  font-size: 11px;
-  padding: 6px 14px;
-  cursor: pointer;
-  transition: all 0.15s;
-  white-space: nowrap;
-}
-.join-btn:hover {
-  background: var(--accent);
-  color: #0a0a0f;
-  border-color: var(--accent);
-}
+.cut-num { font-family: var(--mono); font-weight: 500; color: var(--danger); }
+.roles-tag { display: inline-block; background: var(--surface2); border: 1px solid var(--border2); color: var(--muted); font-size: 10px; font-family: var(--mono); padding: 3px 8px; margin: 2px; }
+.join-btn { background: transparent; border: 1px solid var(--border2); color: var(--accent); font-family: var(--mono); font-size: 11px; padding: 6px 14px; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+.join-btn:hover { background: var(--accent); color: #0a0a0f; border-color: var(--accent); }
 
-/* ── REGISTRATION FORM ── */
-#register {
-  background: var(--surface);
-  border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
-}
-.form-wrap {
-  max-width: 640px;
-  margin: 0 auto;
-  padding: 60px 48px;
-}
+/* ── FORM ── */
+#register { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.form-wrap { max-width: 640px; margin: 0 auto; padding: 60px 48px; }
 .form-header { margin-bottom: 40px; }
-.form-header h2 {
-  font-family: var(--serif);
-  font-size: 36px;
-  font-weight: 400;
-  margin-bottom: 8px;
-}
+.form-header h2 { font-family: var(--serif); font-size: 36px; font-weight: 400; margin-bottom: 8px; }
 .form-header p { font-size: 14px; color: var(--muted); }
-
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .form-group { display: flex; flex-direction: column; gap: 8px; }
 .form-group.full { grid-column: 1 / -1; }
-.form-group label {
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-.form-group input,
-.form-group select {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  color: var(--text);
-  padding: 12px 16px;
-  font-family: var(--sans);
-  font-size: 14px;
-  outline: none;
-  transition: border-color 0.2s;
-  appearance: none;
-  -webkit-appearance: none;
-}
-.form-group input:focus,
+.form-group label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); }
+.form-group select { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 12px 16px; font-family: var(--sans); font-size: 14px; outline: none; transition: border-color 0.2s; appearance: none; -webkit-appearance: none; }
 .form-group select:focus { border-color: var(--accent); }
-.form-group input::placeholder { color: var(--muted); }
 
-/* tech stack multi-select */
-.tech-grid {
-  display: flex; flex-wrap: wrap; gap: 8px;
-  margin-top: 4px;
-}
-.tech-chip {
-  font-family: var(--mono);
-  font-size: 11px;
-  padding: 6px 14px;
-  border: 1px solid var(--border);
-  color: var(--muted);
-  cursor: pointer;
-  transition: all 0.15s;
-  user-select: none;
-}
-.tech-chip:hover { border-color: var(--border2); color: var(--text); }
-.tech-chip.active {
-  border-color: var(--accent2);
-  color: var(--accent2);
-  background: rgba(107, 255, 204, 0.06);
-}
-
-.yoe-row { display: flex; align-items: center; gap: 12px; }
-.yoe-row input[type=range] {
-  flex: 1; padding: 0;
-  background: transparent; border: none;
-  accent-color: var(--accent);
-}
-.yoe-val {
-  font-family: var(--mono);
-  font-size: 20px;
-  font-weight: 500;
-  color: var(--accent);
-  min-width: 40px;
-}
-
-.submit-btn {
-  width: 100%;
-  background: var(--accent);
-  color: #0a0a0f;
-  border: none;
-  padding: 16px;
-  font-family: var(--mono);
-  font-size: 14px;
-  font-weight: 500;
-  letter-spacing: 0.05em;
-  cursor: pointer;
-  margin-top: 32px;
-  transition: all 0.2s;
-  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
-}
-.submit-btn:hover { background: #fff; transform: translateY(-2px); }
-
-/* ── COMBO SEARCHABLE DROPDOWN ── */
+/* ── COMBO ── */
 .combo-wrap { position: relative; }
-.combo-wrap input {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  color: var(--text);
-  padding: 12px 16px;
-  font-family: var(--sans);
-  font-size: 14px;
-  outline: none;
-  width: 100%;
-  transition: border-color 0.2s;
-}
+.combo-wrap input { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 12px 16px; font-family: var(--sans); font-size: 14px; outline: none; width: 100%; transition: border-color 0.2s; }
 .combo-wrap input:focus { border-color: var(--accent); }
 .combo-wrap input::placeholder { color: var(--muted); }
-.combo-dropdown {
-  display: none;
-  position: absolute;
-  top: 100%; left: 0; right: 0;
-  background: var(--surface);
-  border: 1px solid var(--border2);
-  border-top: none;
-  max-height: 220px;
-  overflow-y: auto;
-  z-index: 100;
-}
+.combo-dropdown { display: none; position: absolute; top: 100%; left: 0; right: 0; background: var(--surface); border: 1px solid var(--border2); border-top: none; max-height: 220px; overflow-y: auto; z-index: 100; }
 .combo-dropdown.open { display: block; }
-.combo-option {
-  padding: 10px 16px;
-  font-size: 13px;
-  cursor: pointer;
-  color: var(--text);
-  border-bottom: 1px solid var(--border);
-  transition: background 0.1s;
-}
+.combo-option { padding: 10px 16px; font-size: 13px; cursor: pointer; color: var(--text); border-bottom: 1px solid var(--border); transition: background 0.1s; }
 .combo-option:hover { background: var(--surface2); color: var(--accent); }
 .combo-option.custom-entry { color: var(--accent2); font-style: italic; }
 .combo-option:last-child { border-bottom: none; }
 
-/* ── CUSTOM ADD ROW ── */
-.custom-add-row {
-  display: flex; gap: 8px; margin-top: 10px;
-}
-.custom-add-row input {
-  flex: 1;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  color: var(--text);
-  padding: 8px 14px;
-  font-family: var(--sans);
-  font-size: 13px;
-  outline: none;
-}
+/* ── TECH CHIPS ── */
+.tech-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.tech-chip { font-family: var(--mono); font-size: 11px; padding: 6px 14px; border: 1px solid var(--border); color: var(--muted); cursor: pointer; transition: all 0.15s; user-select: none; }
+.tech-chip:hover { border-color: var(--border2); color: var(--text); }
+.tech-chip.active { border-color: var(--accent2); color: var(--accent2); background: rgba(107,255,204,0.06); }
+.tech-chip.custom { border-color: var(--accent2); color: var(--accent2); background: rgba(107,255,204,0.06); }
+.custom-add-row { display: flex; gap: 8px; margin-top: 10px; }
+.custom-add-row input { flex: 1; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 8px 14px; font-family: var(--sans); font-size: 13px; outline: none; }
 .custom-add-row input:focus { border-color: var(--accent2); }
 .custom-add-row input::placeholder { color: var(--muted); }
-.custom-add-row button {
-  background: transparent;
-  border: 1px solid var(--border2);
-  color: var(--accent2);
-  font-family: var(--mono);
-  font-size: 12px;
-  padding: 8px 16px;
-  cursor: pointer;
-  transition: all 0.15s;
-  white-space: nowrap;
-}
+.custom-add-row button { background: transparent; border: 1px solid var(--border2); color: var(--accent2); font-family: var(--mono); font-size: 12px; padding: 8px 16px; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
 .custom-add-row button:hover { background: var(--accent2); color: #0a0a0f; }
-.tech-chip.custom { border-color: var(--accent2); color: var(--accent2); background: rgba(107,255,204,0.06); }
-.tech-chip.custom.active { background: rgba(107,255,204,0.15); }
 
-/* ── RESULT / WAITING ROOM ── */
+/* ── YOE ── */
+.yoe-row { display: flex; align-items: center; gap: 12px; }
+.yoe-row input[type=range] { flex: 1; padding: 0; background: transparent; border: none; accent-color: var(--accent); }
+.yoe-val { font-family: var(--mono); font-size: 20px; font-weight: 500; color: var(--accent); min-width: 40px; }
+
+/* ── SUBMIT ── */
+.submit-btn { width: 100%; background: var(--accent); color: #0a0a0f; border: none; padding: 16px; font-family: var(--mono); font-size: 14px; font-weight: 500; letter-spacing: 0.05em; cursor: pointer; margin-top: 32px; transition: all 0.2s; clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px)); }
+.submit-btn:hover { background: #fff; transform: translateY(-2px); }
+
+/* ── RESULT ── */
 #result { display: none; }
-.result-wrap {
-  max-width: 640px;
-  margin: 0 auto;
-  padding: 60px 48px;
-  text-align: center;
-}
-.result-wrap h2 {
-  font-family: var(--serif);
-  font-size: 28px;
-  font-weight: 400;
-  margin-bottom: 48px;
-  color: var(--muted);
-}
-.queue-big {
-  font-family: var(--mono);
-  font-size: clamp(72px, 12vw, 120px);
-  font-weight: 500;
-  color: var(--accent);
-  line-height: 1;
-  margin-bottom: 8px;
-  animation: countUp 1.2s ease-out;
-}
-@keyframes countUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-.queue-sub {
-  font-family: var(--mono);
-  font-size: 13px;
-  color: var(--muted);
-  margin-bottom: 48px;
-}
-
-.dots-field {
-  display: flex; flex-wrap: wrap; gap: 4px;
-  justify-content: center;
-  margin-bottom: 32px;
-  max-width: 480px;
-  margin-left: auto; margin-right: auto;
-}
-.dot {
-  width: 8px; height: 8px; border-radius: 50%;
-  background: var(--border2);
-  transition: background 0.3s;
-}
+.result-wrap { max-width: 640px; margin: 0 auto; padding: 60px 48px; text-align: center; }
+.result-wrap h2 { font-family: var(--serif); font-size: 28px; font-weight: 400; margin-bottom: 48px; color: var(--muted); }
+.queue-big { font-family: var(--mono); font-size: clamp(72px, 12vw, 120px); font-weight: 500; color: var(--accent); line-height: 1; margin-bottom: 8px; animation: countUp 1.2s ease-out; }
+@keyframes countUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+.queue-sub { font-family: var(--mono); font-size: 13px; color: var(--muted); margin-bottom: 48px; }
+.dots-field { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; margin-bottom: 32px; max-width: 480px; margin-left: auto; margin-right: auto; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border2); }
 .dot.ahead { background: #3a3a5a; }
 .dot.you { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
-
 .progress-section { margin: 32px 0; text-align: left; }
-.progress-label-row {
-  display: flex; justify-content: space-between;
-  font-family: var(--mono); font-size: 11px;
-  color: var(--muted); margin-bottom: 8px;
-}
-.progress-track {
-  background: var(--surface2);
-  height: 4px;
-  position: relative;
-  overflow: hidden;
-}
-.progress-fill {
-  position: absolute; left: 0; top: 0; bottom: 0;
-  background: var(--accent);
-  transition: width 1.5s ease-out;
-}
-
-.score-cards {
-  display: grid; grid-template-columns: repeat(3, 1fr);
-  gap: 12px; margin: 32px 0;
-}
-.score-card {
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  padding: 16px;
-  text-align: center;
-}
-.score-card-val {
-  font-family: var(--mono);
-  font-size: 24px;
-  font-weight: 500;
-  color: var(--accent2);
-  display: block;
-}
-.score-card-lbl {
-  font-size: 11px;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin-top: 4px;
-}
-
-.share-row {
-  display: flex; gap: 12px; justify-content: center;
-  margin-top: 40px;
-}
-.share-btn {
-  font-family: var(--mono);
-  font-size: 11px;
-  padding: 10px 20px;
-  border: 1px solid var(--border2);
-  color: var(--muted);
-  background: transparent;
-  cursor: pointer;
-  transition: all 0.15s;
-}
+.progress-label-row { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+.progress-track { background: var(--surface2); height: 4px; position: relative; overflow: hidden; }
+.progress-fill { position: absolute; left: 0; top: 0; bottom: 0; background: var(--accent); transition: width 1.5s ease-out; }
+.score-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 32px 0; }
+.score-card { background: var(--surface2); border: 1px solid var(--border); padding: 16px; text-align: center; }
+.score-card-val { font-family: var(--mono); font-size: 24px; font-weight: 500; color: var(--accent2); display: block; }
+.score-card-lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 4px; }
+.share-row { display: flex; gap: 12px; justify-content: center; margin-top: 40px; }
+.share-btn { font-family: var(--mono); font-size: 11px; padding: 10px 20px; border: 1px solid var(--border2); color: var(--muted); background: transparent; cursor: pointer; transition: all 0.15s; }
 .share-btn:hover { border-color: var(--accent); color: var(--accent); }
 
-/* ── HOW IT WORKS ── */
-.how-grid {
-  display: grid; grid-template-columns: repeat(3, 1fr);
-  gap: 1px;
-  background: var(--border);
-  border: 1px solid var(--border);
-  margin-top: 0;
-}
-.how-item {
-  background: var(--bg);
-  padding: 36px 32px;
-}
-.how-num {
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--accent);
-  letter-spacing: 0.1em;
-  margin-bottom: 16px;
-}
-.how-item h3 {
-  font-family: var(--serif);
-  font-size: 20px;
-  font-weight: 400;
-  margin-bottom: 10px;
-}
+/* ── HOW ── */
+.how-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); }
+.how-item { background: var(--bg); padding: 36px 32px; }
+.how-num { font-family: var(--mono); font-size: 11px; color: var(--accent); letter-spacing: 0.1em; margin-bottom: 16px; }
+.how-item h3 { font-family: var(--serif); font-size: 20px; font-weight: 400; margin-bottom: 10px; }
 .how-item p { font-size: 13px; color: var(--muted); line-height: 1.7; }
 
 /* ── FOOTER ── */
-footer {
-  border-top: 1px solid var(--border);
-  padding: 28px 48px;
-  display: flex; justify-content: space-between; align-items: center;
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--muted);
-  position: relative; z-index: 1;
-}
+footer { border-top: 1px solid var(--border); padding: 28px 48px; display: flex; justify-content: space-between; align-items: center; font-family: var(--mono); font-size: 11px; color: var(--muted); position: relative; z-index: 1; }
 
-/* ── ANIMATIONS ── */
-.fade-in {
-  opacity: 0;
-  transform: translateY(16px);
-  animation: fadeIn 0.6s ease forwards;
-}
-@keyframes fadeIn {
-  to { opacity: 1; transform: translateY(0); }
-}
+/* ── FADE IN ── */
+.fade-in { opacity: 0; transform: translateY(16px); animation: fadeIn 0.6s ease forwards; }
+@keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
 .fade-in:nth-child(1) { animation-delay: 0.1s; }
 .fade-in:nth-child(2) { animation-delay: 0.2s; }
 .fade-in:nth-child(3) { animation-delay: 0.3s; }
@@ -592,6 +194,7 @@ footer {
   .form-grid { grid-template-columns: 1fr; }
   .how-grid { grid-template-columns: 1fr; }
   .score-cards { grid-template-columns: repeat(3, 1fr); }
+  .nav-stat { display: none; }
 }
 </style>
 </head>
@@ -624,19 +227,27 @@ footer {
 <!-- NAV -->
 <nav>
   <div class="logo">BAYQUEUE.IO</div>
-  <div class="nav-stat">湾区今年已裁 <span>31,525</span> 人</div>
+  <div class="nav-right">
+    <div class="nav-stat" data-zh="湾区今年已裁 <span>31,525</span> 人" data-en="<span>31,525</span> Bay Area layoffs in 2026">湾区今年已裁 <span>31,525</span> 人</div>
+    <div class="lang-toggle">
+      <button class="lang-btn active" onclick="setLang('zh')">中文</button>
+      <button class="lang-btn" onclick="setLang('en')">EN</button>
+    </div>
+  </div>
 </nav>
 
 <!-- HERO -->
 <div class="hero">
-  <div class="hero-eyebrow fade-in">实时求职排名系统</div>
-  <h1 class="fade-in">你在湾区求职者中<br><em>排第几名？</em></h1>
-  <p class="hero-sub fade-in">填写你的背景，系统根据 YoE、学历、技术栈为你打分，和所有活跃求职者实时对比排名——就像演唱会候场室。</p>
+  <div class="hero-eyebrow fade-in" data-zh="实时求职排名系统" data-en="Real-Time Job Seeker Queue">实时求职排名系统</div>
+  <h1 class="fade-in">
+    <span data-zh='你在湾区求职者中<br><em>排第几名？</em>' data-en='Where do you rank<br>among Bay Area <em>job seekers?</em>'>你在湾区求职者中<br><em>排第几名？</em></span>
+  </h1>
+  <p class="hero-sub fade-in" data-zh="填写你的背景，系统根据 YoE、学历、技术栈为你打分，和所有活跃求职者实时对比排名——就像演唱会候场室。" data-en="Enter your background and get ranked by YoE, education, and tech stack against all active job seekers in the Bay Area — like a concert waiting room.">填写你的背景，系统根据 YoE、学历、技术栈为你打分，和所有活跃求职者实时对比排名——就像演唱会候场室。</p>
   <div class="hero-cta fade-in">
     <button class="btn-primary" onclick="document.getElementById('register').scrollIntoView({behavior:'smooth'})">
-      → 立即查看我的排名
+      <span data-zh="→ 立即查看我的排名" data-en="→ See My Ranking">→ 立即查看我的排名</span>
     </button>
-    <span class="hero-note">已有 2,847 人加入队列</span>
+    <span class="hero-note" data-zh="已有 2,847 人加入队列" data-en="2,847 job seekers in queue">已有 2,847 人加入队列</span>
   </div>
 </div>
 
@@ -644,32 +255,32 @@ footer {
 <div class="stats-bar">
   <div class="stat-item">
     <span class="stat-num">31,525</span>
-    <span class="stat-label">湾区2026被裁人数</span>
+    <span class="stat-label" data-zh="湾区2026被裁人数" data-en="Bay Area Layoffs 2026">湾区2026被裁人数</span>
   </div>
   <div class="stat-item">
     <span class="stat-num">10</span>
-    <span class="stat-label">裁员科技公司</span>
+    <span class="stat-label" data-zh="裁员科技公司" data-en="Tech Companies">裁员科技公司</span>
   </div>
   <div class="stat-item">
     <span class="stat-num">2,847</span>
-    <span class="stat-label">活跃求职者</span>
+    <span class="stat-label" data-zh="活跃求职者" data-en="Active Job Seekers">活跃求职者</span>
   </div>
   <div class="stat-item">
     <span class="stat-num">458</span>
-    <span class="stat-label">加州WARN备案记录</span>
+    <span class="stat-label" data-zh="加州WARN备案记录" data-en="CA WARN Filings">加州WARN备案记录</span>
   </div>
 </div>
 
 <!-- LAYOFFS TABLE -->
 <div class="section">
-  <div class="section-title">湾区裁员追踪 · 2026</div>
+  <div class="section-title" data-zh="湾区裁员追踪 · 2026" data-en="Bay Area Layoff Tracker · 2026">湾区裁员追踪 · 2026</div>
   <table class="layoffs-table">
     <thead>
       <tr>
-        <th>公司</th>
-        <th>被裁人数</th>
-        <th>主要职位</th>
-        <th>行业</th>
+        <th data-zh="公司" data-en="Company">公司</th>
+        <th data-zh="被裁人数" data-en="Jobs Cut">被裁人数</th>
+        <th data-zh="主要职位" data-en="Roles Affected">主要职位</th>
+        <th data-zh="行业" data-en="Sector">行业</th>
         <th></th>
       </tr>
     </thead>
@@ -679,22 +290,22 @@ footer {
 
 <!-- HOW IT WORKS -->
 <div class="section" style="padding-top:0;">
-  <div class="section-title">如何运作</div>
+  <div class="section-title" data-zh="如何运作" data-en="How It Works">如何运作</div>
   <div class="how-grid">
     <div class="how-item">
       <div class="how-num">01 —</div>
-      <h3>填写你的简历</h3>
-      <p>YoE、学历、技术栈，30秒完成，无需注册账号。</p>
+      <h3 data-zh="填写你的简历" data-en="Fill In Your Profile">填写你的简历</h3>
+      <p data-zh="YoE、学历、技术栈，30秒完成，无需注册账号。" data-en="YoE, education, tech stack — 30 seconds, no account required.">YoE、学历、技术栈，30秒完成，无需注册账号。</p>
     </div>
     <div class="how-item">
       <div class="how-num">02 —</div>
-      <h3>系统实时打分</h3>
-      <p>算法综合评估你的背景，与所有活跃求职者对比排名。</p>
+      <h3 data-zh="系统实时打分" data-en="Get Scored Instantly">系统实时打分</h3>
+      <p data-zh="算法综合评估你的背景，与所有活跃求职者对比排名。" data-en="Our algorithm scores your background and compares you against all active seekers.">算法综合评估你的背景，与所有活跃求职者对比排名。</p>
     </div>
     <div class="how-item">
       <div class="how-num">03 —</div>
-      <h3>看到你的位置</h3>
-      <p>排名第几，前面有多少人，百分位，分项分析。</p>
+      <h3 data-zh="看到你的位置" data-en="See Your Position">看到你的位置</h3>
+      <p data-zh="排名第几，前面有多少人，百分位，分项分析。" data-en="Your queue number, how many are ahead, percentile, and score breakdown.">排名第几，前面有多少人，百分位，分项分析。</p>
     </div>
   </div>
 </div>
@@ -703,28 +314,30 @@ footer {
 <div id="register">
   <div class="form-wrap">
     <div class="form-header">
-      <h2>填写你的信息</h2>
-      <p>我们用这些数据计算你在湾区求职者中的排名位置</p>
+      <h2 data-zh="填写你的信息" data-en="Enter Your Profile">填写你的信息</h2>
+      <p data-zh="我们用这些数据计算你在湾区求职者中的排名位置" data-en="We use this to calculate your position among Bay Area job seekers">我们用这些数据计算你在湾区求职者中的排名位置</p>
     </div>
 
-    <div class="form-grid" id="formFields">
+    <div class="form-grid">
       <div class="form-group">
-        <label>姓名（可选）</label>
+        <label data-zh="姓名（可选）" data-en="Name (optional)">姓名（可选）</label>
         <input type="text" id="fname" placeholder="Your name">
       </div>
-      <!-- COMPANY with search + custom -->
+
       <div class="form-group full">
-        <label>前雇主</label>
-        <div class="combo-wrap" id="companyCombo">
-          <input type="text" id="fcompanyInput" placeholder="搜索或输入公司名..." autocomplete="off"
-            oninput="filterDropdown('company')" onfocus="openDropdown('company')" onblur="closeDropdown('company', 300)">
+        <label data-zh="前雇主" data-en="Previous Employer">前雇主</label>
+        <div class="combo-wrap">
+          <input type="text" id="fcompanyInput" autocomplete="off"
+            data-placeholder-zh="搜索或输入公司名..." data-placeholder-en="Search or type company name..."
+            placeholder="搜索或输入公司名..."
+            oninput="filterDropdown('company')" onfocus="openDropdown('company')" onblur="closeDropdown('company',300)">
           <div class="combo-dropdown" id="companyDropdown"></div>
         </div>
         <input type="hidden" id="fcompany">
       </div>
 
       <div class="form-group">
-        <label>最高学历</label>
+        <label data-zh="最高学历" data-en="Highest Education">最高学历</label>
         <select id="fedu">
           <option value="0">High School</option>
           <option value="1">Associate's (AA)</option>
@@ -736,29 +349,30 @@ footer {
         </select>
       </div>
 
-      <!-- ROLE with search + custom -->
       <div class="form-group">
-        <label>目标职位</label>
-        <div class="combo-wrap" id="roleCombo">
-          <input type="text" id="froleInput" placeholder="搜索或输入职位..." autocomplete="off"
-            oninput="filterDropdown('role')" onfocus="openDropdown('role')" onblur="closeDropdown('role', 300)">
+        <label data-zh="目标职位" data-en="Target Role">目标职位</label>
+        <div class="combo-wrap">
+          <input type="text" id="froleInput" autocomplete="off"
+            data-placeholder-zh="搜索或输入职位..." data-placeholder-en="Search or type role..."
+            placeholder="搜索或输入职位..."
+            oninput="filterDropdown('role')" onfocus="openDropdown('role')" onblur="closeDropdown('role',300)">
           <div class="combo-dropdown" id="roleDropdown"></div>
         </div>
         <input type="hidden" id="frole">
       </div>
 
       <div class="form-group full">
-        <label>工作年限 (YoE)</label>
+        <label data-zh="工作年限 (YoE)" data-en="Years of Experience (YoE)">工作年限 (YoE)</label>
         <div class="yoe-row">
           <input type="range" id="fyoe" min="0" max="25" value="5" step="1"
             oninput="document.getElementById('yoeDisplay').textContent=this.value">
           <span class="yoe-val" id="yoeDisplay">5</span>
-          <span style="font-size:13px;color:var(--muted)">年</span>
+          <span style="font-size:13px;color:var(--muted)" data-zh="年" data-en="yrs">年</span>
         </div>
       </div>
 
       <div class="form-group full">
-        <label>技术栈 — Top 20 热门 · 可多选 · 可自填</label>
+        <label data-zh="技术栈 — Top 20 热门 · 可多选 · 可自填" data-en="Tech Stack — Top 20 · Multi-select · Add custom">技术栈 — Top 20 热门 · 可多选 · 可自填</label>
         <div class="tech-grid" id="techGrid">
           <span class="tech-chip" data-v="4" onclick="toggleChip(this)">Python</span>
           <span class="tech-chip" data-v="4" onclick="toggleChip(this)">ML / AI</span>
@@ -780,232 +394,222 @@ footer {
           <span class="tech-chip" data-v="2" onclick="toggleChip(this)">Spark / Kafka</span>
           <span class="tech-chip" data-v="1" onclick="toggleChip(this)">Swift / iOS</span>
           <span class="tech-chip" data-v="1" onclick="toggleChip(this)">Figma / Design</span>
-          <!-- custom chips injected here -->
         </div>
         <div class="custom-add-row">
-          <input type="text" id="customTechInput" placeholder="添加其他技术..." maxlength="30"
-            onkeydown="if(event.key==='Enter'){addCustomChip('tech');event.preventDefault()}">
-          <button type="button" onclick="addCustomChip('tech')">+ 添加</button>
+          <input type="text" id="customTechInput"
+            data-placeholder-zh="添加其他技术..." data-placeholder-en="Add another skill..."
+            placeholder="添加其他技术..." maxlength="30"
+            onkeydown="if(event.key==='Enter'){addCustomChip();event.preventDefault()}">
+          <button type="button" onclick="addCustomChip()">
+            <span data-zh="+ 添加" data-en="+ Add">+ 添加</span>
+          </button>
         </div>
       </div>
     </div>
 
     <button class="submit-btn" onclick="calculateRanking()">
-      → 计算我的排名
+      <span data-zh="→ 计算我的排名" data-en="→ Calculate My Ranking">→ 计算我的排名</span>
     </button>
   </div>
 </div>
 
-<!-- RESULT / WAITING ROOM -->
+<!-- RESULT -->
 <div id="result">
   <div class="result-wrap">
-    <h2>你在队列中的位置</h2>
-
+    <h2 data-zh="你在队列中的位置" data-en="Your Position in the Queue">你在队列中的位置</h2>
     <div class="queue-big" id="rQueueNum">#—</div>
-    <div class="queue-sub">
-      共 <span id="rTotal">2,847</span> 名活跃求职者 ·
-      你击败了 <span id="rPercentile" style="color:var(--accent)">—</span>% 的人
+    <div class="queue-sub" id="rQueueSub">
+      共 <span id="rTotal">2,847</span> 名活跃求职者 · 你击败了 <span id="rPercentile" style="color:var(--accent)">—</span>% 的人
     </div>
-
     <div class="dots-field" id="dotsField"></div>
-
     <div class="progress-section">
       <div class="progress-label-row">
-        <span>前面有 <strong id="rAhead">—</strong> 人</span>
+        <span id="rAheadLabel">前面有 <strong id="rAhead">—</strong> 人</span>
         <span>Top <span id="rPct2">—</span>%</span>
       </div>
       <div class="progress-track">
         <div class="progress-fill" id="rProgressFill" style="width:0%"></div>
       </div>
     </div>
-
     <div class="score-cards">
       <div class="score-card">
         <span class="score-card-val" id="rScoreTotal">—</span>
-        <div class="score-card-lbl">总分 / 100</div>
+        <div class="score-card-lbl" data-zh="总分 / 100" data-en="Total / 100">总分 / 100</div>
       </div>
       <div class="score-card">
         <span class="score-card-val" id="rYoe">—</span>
-        <div class="score-card-lbl">YoE 得分</div>
+        <div class="score-card-lbl" data-zh="YoE 得分" data-en="YoE Score">YoE 得分</div>
       </div>
       <div class="score-card">
         <span class="score-card-val" id="rEdu">—</span>
-        <div class="score-card-lbl">学历得分</div>
+        <div class="score-card-lbl" data-zh="学历得分" data-en="Education Score">学历得分</div>
       </div>
     </div>
-
     <div class="share-row">
-      <button class="share-btn" onclick="copyLink()">复制链接分享</button>
-      <button class="share-btn" onclick="document.getElementById('register').scrollIntoView({behavior:'smooth'})">更新我的信息</button>
+      <button class="share-btn" onclick="copyLink()">
+        <span data-zh="复制链接分享" data-en="Copy Link">复制链接分享</span>
+      </button>
+      <button class="share-btn" onclick="document.getElementById('register').scrollIntoView({behavior:'smooth'})">
+        <span data-zh="更新我的信息" data-en="Update My Profile">更新我的信息</span>
+      </button>
     </div>
   </div>
 </div>
 
 <!-- FOOTER -->
 <footer>
-  <span>BAYQUEUE.IO — 湾区求职排名系统</span>
-  <span>数据来源：California WARN Act · layoffs.fyi · 用户自提交</span>
+  <span data-zh="BAYQUEUE.IO — 湾区求职排名系统" data-en="BAYQUEUE.IO — Bay Area Job Seeker Queue">BAYQUEUE.IO — 湾区求职排名系统</span>
+  <span data-zh="数据来源：California WARN Act · layoffs.fyi · 用户自提交" data-en="Data: California WARN Act · layoffs.fyi · User submissions">数据来源：California WARN Act · layoffs.fyi · 用户自提交</span>
 </footer>
 
 <script>
+// ── LANGUAGE SYSTEM ──
+let currentLang = 'zh';
+
+function setLang(lang) {
+  currentLang = lang;
+
+  // toggle button states
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.textContent.trim().toLowerCase() === (lang === 'zh' ? '中文' : 'en'));
+  });
+
+  // update html lang attr
+  document.documentElement.lang = lang;
+
+  // update all data-zh / data-en elements
+  document.querySelectorAll('[data-zh]').forEach(el => {
+    const val = el.getAttribute('data-' + lang);
+    if (!val) return;
+    if (el.tagName === 'INPUT' || el.tagName === 'BUTTON') {
+      el.value = val;
+    } else {
+      el.innerHTML = val;
+    }
+  });
+
+  // update placeholders
+  document.querySelectorAll('[data-placeholder-zh]').forEach(el => {
+    el.placeholder = el.getAttribute('data-placeholder-' + lang);
+  });
+
+  // re-render table join buttons and nav stat
+  renderTable();
+  updateResultLabels();
+}
+
 // ── LAYOFF DATA ──
 const layoffs = [
-  { company: 'Cisco', city: 'San Jose', cut: 6000, sector: 'Networking/Cybersecurity', roles: ['Overlapping roles', 'Post-acquisition'] },
-  { company: 'Meta Platforms', city: 'Menlo Park', cut: 16000, sector: 'Social Media/AI', roles: ['Engineering', 'Middle mgmt', 'Ops'] },
-  { company: 'Block', city: 'San Francisco', cut: 4000, sector: 'Fintech', roles: ['QA testers', 'Customer support'] },
-  { company: 'Meta Reality Labs', city: 'Menlo Park', cut: 1500, sector: 'Social Media/VR', roles: ['VR/AR engineers', 'Metaverse designers'] },
-  { company: 'Salesforce', city: 'San Francisco', cut: 1000, sector: 'CRM/SaaS', roles: ['Sales support', 'Tier-1 support'] },
-  { company: 'Autodesk', city: 'San Francisco', cut: 1000, sector: 'Design Software', roles: ['Overlapping roles'] },
-  { company: 'eBay', city: 'San Jose', cut: 800, sector: 'E-Commerce', roles: ['Content moderation', 'Support'] },
-  { company: 'Pinterest', city: 'San Francisco', cut: 675, sector: 'Social Media', roles: ['Content moderation', 'Marketing'] },
-  { company: 'Palo Alto Networks', city: 'Santa Clara', cut: 500, sector: 'Cybersecurity', roles: ['Overlapping roles'] },
-  { company: 'xAI', city: 'San Francisco', cut: 50, sector: 'AI Research', roles: ['Senior engineers'] },
+  { company: 'Cisco',               city: 'San Jose',      cut: 6000,  sector: 'Networking/Cybersecurity', roles: ['Overlapping roles', 'Post-acquisition'] },
+  { company: 'Meta Platforms',      city: 'Menlo Park',    cut: 16000, sector: 'Social Media/AI',          roles: ['Engineering', 'Middle mgmt', 'Ops'] },
+  { company: 'Block',               city: 'San Francisco', cut: 4000,  sector: 'Fintech',                  roles: ['QA testers', 'Customer support'] },
+  { company: 'Meta Reality Labs',   city: 'Menlo Park',    cut: 1500,  sector: 'Social Media/VR',          roles: ['VR/AR engineers', 'Metaverse designers'] },
+  { company: 'Salesforce',          city: 'San Francisco', cut: 1000,  sector: 'CRM/SaaS',                 roles: ['Sales support', 'Tier-1 support'] },
+  { company: 'Autodesk',            city: 'San Francisco', cut: 1000,  sector: 'Design Software',          roles: ['Overlapping roles'] },
+  { company: 'eBay',                city: 'San Jose',      cut: 800,   sector: 'E-Commerce',               roles: ['Content moderation', 'Support'] },
+  { company: 'Pinterest',           city: 'San Francisco', cut: 675,   sector: 'Social Media',             roles: ['Content moderation', 'Marketing'] },
+  { company: 'Palo Alto Networks',  city: 'Santa Clara',   cut: 500,   sector: 'Cybersecurity',            roles: ['Overlapping roles'] },
+  { company: 'xAI',                 city: 'San Francisco', cut: 50,    sector: 'AI Research',              roles: ['Senior engineers'] },
 ];
 
-// render table
-const tbody = document.getElementById('layoffTableBody');
-layoffs.forEach(l => {
-  const tr = document.createElement('tr');
-  tr.innerHTML = `
-    <td>
-      <div class="company-name">${l.company}</div>
-      <div class="company-city">${l.city}</div>
-    </td>
-    <td><span class="cut-num">${l.cut.toLocaleString()}</span></td>
-    <td>${l.roles.map(r => `<span class="roles-tag">${r}</span>`).join('')}</td>
-    <td style="font-size:11px;color:var(--muted);font-family:var(--mono)">${l.sector}</td>
-    <td>
-      <button class="join-btn" onclick="prefillCompany('${l.company}')">
-        我在这里 →
-      </button>
-    </td>
-  `;
-  tbody.appendChild(tr);
-});
+function renderTable() {
+  const tbody = document.getElementById('layoffTableBody');
+  tbody.innerHTML = '';
+  const btnText = currentLang === 'zh' ? '我在这里 →' : 'I was here →';
+  const thEls = document.querySelectorAll('.layoffs-table th[data-zh]');
+  layoffs.forEach(l => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>
+        <div class="company-name">${l.company}</div>
+        <div class="company-city">${l.city}</div>
+      </td>
+      <td><span class="cut-num">${l.cut.toLocaleString()}</span></td>
+      <td>${l.roles.map(r => `<span class="roles-tag">${r}</span>`).join('')}</td>
+      <td style="font-size:11px;color:var(--muted);font-family:var(--mono)">${l.sector}</td>
+      <td><button class="join-btn" onclick="prefillCompany('${l.company}')">${btnText}</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+renderTable();
 
 // ── COMBO DATA ──
 const COMPANIES = [
-  // From layoffs 2026 tracker (Bay Area)
-  'Cisco','Meta Platforms','Block','Meta Reality Labs','Salesforce',
-  'Autodesk','eBay','Pinterest','Palo Alto Networks','xAI',
-  // From WARN Act top Bay Area
-  'Intel Corporation','Apple','Google','LinkedIn','Qualcomm',
-  'Carbon Health','Bloom Energy','Cepheid','Jabil','Kaiser Foundation',
-  'Illumina','Anaplan','LendingClub','Wells Fargo','Robinhood',
-  'Thermo Fisher Scientific','Accenture','Juniper Networks',
-  'Cruise','Rivian Automotive','Analog Devices','BILL',
-  'ForgeRock','Headway Technologies',
-  // Other major Bay Area tech
-  'Stripe','Airbnb','Lyft','Uber','DoorDash','Instacart',
-  'Databricks','Snowflake','Okta','Cloudflare','Twilio',
-  'Palantir','Box','Dropbox','Zoom','DocuSign','Splunk',
-  'VMware','Broadcom','NVIDIA','AMD','Applied Materials',
-  'ServiceNow','Workday','Adobe','Oracle',
+  'Accenture','Adobe','Airbnb','AMD','Anaplan','Analog Devices','Apple',
+  'Applied Materials','Autodesk','BILL','Block','Bloom Energy',
+  'Box','Broadcom','Carbon Health','Cepheid','Cisco',
+  'Cloudflare','Cruise','Databricks','DocuSign','DoorDash',
+  'Dropbox','eBay','ForgeRock','Google','Headway Technologies',
+  'Illumina','Instacart','Intel Corporation','Jabil','Juniper Networks',
+  'Kaiser Foundation','LendingClub','LinkedIn','Lyft','Meta Platforms',
+  'Meta Reality Labs','NVIDIA','Okta','Oracle','Palantir',
+  'Palo Alto Networks','Pinterest','Qualcomm','Rivian Automotive',
+  'Robinhood','Salesforce','ServiceNow','Snowflake','Splunk',
+  'Stripe','Thermo Fisher Scientific','Twilio','Uber','VMware',
+  'Wells Fargo','Workday','xAI','Zoom',
 ].sort();
 
 const ROLES = [
-  // Engineering
-  'Software Engineer (SWE)',
-  'Senior Software Engineer',
-  'Staff / Principal Engineer',
-  'Frontend Engineer',
-  'Backend Engineer',
-  'Full Stack Engineer',
-  'Mobile Engineer (iOS / Android)',
-  'Infrastructure / DevOps Engineer',
-  'Site Reliability Engineer (SRE)',
-  'Security Engineer',
-  'Embedded Systems Engineer',
-  // Data / ML
-  'Data Scientist',
-  'Machine Learning Engineer',
-  'AI / LLM Engineer',
-  'Data Engineer',
-  'Data Analyst',
-  'Research Scientist',
-  // Product / Design
-  'Product Manager (PM)',
-  'Senior Product Manager',
-  'UX / Product Designer',
-  'UX Researcher',
-  // Management
-  'Engineering Manager',
-  'Director of Engineering',
-  'VP of Engineering',
-  'Chief Technology Officer (CTO)',
-  // Business / Ops
-  'Technical Program Manager (TPM)',
-  'Product Operations',
-  'Customer Success Manager',
-  'Sales Engineer / Solutions Engineer',
-  'Business Development',
-  'Operations Manager',
-  'HR / Recruiting',
-  'Finance / Accounting',
-  // QA / Support
-  'QA / Test Engineer',
-  'Customer Support / Service',
-  'Content Moderator',
+  'AI / LLM Engineer','Backend Engineer','Business Development',
+  'Chief Technology Officer (CTO)','Customer Success Manager',
+  'Customer Support / Service','Content Moderator','Data Analyst',
+  'Data Engineer','Data Scientist','Director of Engineering',
+  'Embedded Systems Engineer','Engineering Manager',
+  'Finance / Accounting','Frontend Engineer','Full Stack Engineer',
+  'HR / Recruiting','Infrastructure / DevOps Engineer','Java Developer',
+  'Machine Learning Engineer','Mobile Engineer (iOS / Android)',
+  'Operations Manager','Product Manager (PM)','Product Operations',
+  'QA / Test Engineer','Research Scientist','Sales Engineer',
+  'Security Engineer','Senior Product Manager','Senior Software Engineer',
+  'Site Reliability Engineer (SRE)','Software Engineer (SWE)',
+  'Staff / Principal Engineer','Technical Program Manager (TPM)',
+  'UX / Product Designer','UX Researcher','VP of Engineering',
 ].sort();
 
 // ── COMBO LOGIC ──
 let closeTimers = {};
-
 function openDropdown(type) {
   clearTimeout(closeTimers[type]);
   filterDropdown(type);
-  document.getElementById(type + 'Dropdown').classList.add('open');
 }
-
 function closeDropdown(type, delay) {
   closeTimers[type] = setTimeout(() => {
-    document.getElementById(type + 'Dropdown').classList.remove('open');
+    const dd = document.getElementById(type + 'Dropdown');
+    if (dd) dd.classList.remove('open');
   }, delay);
 }
-
 function filterDropdown(type) {
   const inputEl = document.getElementById('f' + type + 'Input');
   const dropdown = document.getElementById(type + 'Dropdown');
   const list = type === 'company' ? COMPANIES : ROLES;
   const q = inputEl.value.trim().toLowerCase();
-
-  const matches = q
-    ? list.filter(item => item.toLowerCase().includes(q))
-    : list;
+  const matches = q ? list.filter(i => i.toLowerCase().includes(q)) : list;
 
   dropdown.innerHTML = '';
-
   matches.slice(0, 30).forEach(item => {
     const div = document.createElement('div');
     div.className = 'combo-option';
     div.textContent = item;
-    div.onmousedown = () => {
-      selectComboOption(type, item);
-    };
+    div.onmousedown = () => selectComboOption(type, item);
     dropdown.appendChild(div);
   });
 
-  // "使用自填内容" option if typed something not in list
   if (q && !list.find(i => i.toLowerCase() === q)) {
     const custom = document.createElement('div');
     custom.className = 'combo-option custom-entry';
-    custom.textContent = '+ 使用 "' + inputEl.value.trim() + '"';
-    custom.onmousedown = () => {
-      selectComboOption(type, inputEl.value.trim());
-    };
+    const addLabel = currentLang === 'zh' ? '+ 使用 "' : '+ Use "';
+    custom.textContent = addLabel + inputEl.value.trim() + '"';
+    custom.onmousedown = () => selectComboOption(type, inputEl.value.trim());
     dropdown.appendChild(custom);
   }
-
   dropdown.classList.add('open');
 }
-
 function selectComboOption(type, value) {
   document.getElementById('f' + type + 'Input').value = value;
   document.getElementById('f' + type).value = value;
   document.getElementById(type + 'Dropdown').classList.remove('open');
 }
-
-// pre-fill from table click
 function prefillCompany(name) {
   document.getElementById('fcompanyInput').value = name;
   document.getElementById('fcompany').value = name;
@@ -1013,59 +617,45 @@ function prefillCompany(name) {
 }
 
 // ── TECH CHIPS ──
-function toggleChip(el) {
-  el.classList.toggle('active');
-}
-
-function addCustomChip(type) {
+function toggleChip(el) { el.classList.toggle('active'); }
+function addCustomChip() {
   const input = document.getElementById('customTechInput');
   const val = input.value.trim();
   if (!val) return;
-
-  // check not already there
   const existing = [...document.querySelectorAll('#techGrid .tech-chip')];
-  if (existing.find(c => c.textContent.toLowerCase() === val.toLowerCase())) {
-    input.value = '';
-    return;
-  }
-
+  if (existing.find(c => c.textContent.toLowerCase() === val.toLowerCase())) { input.value = ''; return; }
   const chip = document.createElement('span');
   chip.className = 'tech-chip custom active';
   chip.setAttribute('data-v', '2');
   chip.textContent = val;
   chip.onclick = () => toggleChip(chip);
-
   document.getElementById('techGrid').appendChild(chip);
   input.value = '';
   input.focus();
 }
 
 // ── SCORING ──
-const eduScores = [0, 5, 18, 24, 30, 22, 10]; // HS, AA, BS, MS, PhD, MBA, Bootcamp
+const eduScores = [0, 5, 18, 24, 30, 22, 10];
 const TOTAL = 2847;
+let lastResult = null;
 
 function calculateRanking() {
   const yoe = parseInt(document.getElementById('fyoe').value);
   const eduIdx = parseInt(document.getElementById('fedu').value);
   const activeChips = document.querySelectorAll('#techGrid .tech-chip.active');
-
   let techScore = 0;
   activeChips.forEach(c => techScore += parseInt(c.getAttribute('data-v')));
   techScore = Math.min(techScore, 20);
-
   const yoeScore = Math.min(Math.round(yoe * 2.5), 50);
   const eduScore = eduScores[eduIdx];
   const total = yoeScore + eduScore + techScore;
-
   const percentile = Math.min(97, Math.round((total / 100) * 90 + 10));
   const position = Math.max(1, Math.round(TOTAL * (1 - percentile / 100)));
   const ahead = position - 1;
+  lastResult = { position, total, yoeScore, eduScore, percentile, ahead };
 
-  // Show result section
   document.getElementById('result').style.display = 'block';
   document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
-
-  // Fill result
   setTimeout(() => {
     document.getElementById('rQueueNum').textContent = '#' + position.toLocaleString();
     document.getElementById('rTotal').textContent = TOTAL.toLocaleString();
@@ -1075,15 +665,28 @@ function calculateRanking() {
     document.getElementById('rScoreTotal').textContent = total;
     document.getElementById('rYoe').textContent = yoeScore;
     document.getElementById('rEdu').textContent = eduScore;
-
-    // Progress bar
-    setTimeout(() => {
-      document.getElementById('rProgressFill').style.width = percentile + '%';
-    }, 200);
-
-    // Dots
+    updateResultLabels();
+    setTimeout(() => { document.getElementById('rProgressFill').style.width = percentile + '%'; }, 200);
     buildDots(position);
   }, 300);
+}
+
+function updateResultLabels() {
+  if (!lastResult) return;
+  const { ahead } = lastResult;
+  if (currentLang === 'zh') {
+    document.getElementById('rAheadLabel').innerHTML = '前面有 <strong id="rAhead">' + ahead.toLocaleString() + '</strong> 人';
+  } else {
+    document.getElementById('rAheadLabel').innerHTML = '<strong id="rAhead">' + ahead.toLocaleString() + '</strong> people ahead of you';
+  }
+  const sub = document.getElementById('rQueueSub');
+  const pct = document.getElementById('rPercentile').textContent;
+  const total = document.getElementById('rTotal').textContent;
+  if (currentLang === 'zh') {
+    sub.innerHTML = '共 <span id="rTotal">' + total + '</span> 名活跃求职者 · 你击败了 <span id="rPercentile" style="color:var(--accent)">' + pct + '</span>% 的人';
+  } else {
+    sub.innerHTML = '<span id="rTotal">' + total + '</span> active job seekers · You outrank <span id="rPercentile" style="color:var(--accent)">' + pct + '</span>% of them';
+  }
 }
 
 function buildDots(position) {
@@ -1094,20 +697,14 @@ function buildDots(position) {
   for (let i = 0; i < shown; i++) {
     const idx = i * step + 1;
     const d = document.createElement('div');
-    if (idx === position || (i === Math.round(position / step))) {
-      d.className = 'dot you';
-    } else if (idx < position) {
-      d.className = 'dot ahead';
-    } else {
-      d.className = 'dot';
-    }
+    d.className = 'dot' + (idx === position ? ' you' : idx < position ? ' ahead' : '');
     field.appendChild(d);
   }
 }
 
 function copyLink() {
   navigator.clipboard.writeText(window.location.href).then(() => {
-    alert('链接已复制！');
+    alert(currentLang === 'zh' ? '链接已复制！' : 'Link copied!');
   });
 }
 </script>
