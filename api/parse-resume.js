@@ -9,38 +9,39 @@ export default async function handler(req, res) {
     const { fileBase64, fileType, fileName } = req.body;
     if (!fileBase64) return res.status(400).json({ error: 'No file data' });
 
-    // Extract readable text from base64 (works for text-based PDFs)
-    const raw = Buffer.from(fileBase64, 'base64').toString('latin1');
-    
-    // Extract text between BT and ET markers (PDF text blocks)
-    let resumeText = '';
-    const btMatches = raw.match(/BT[\s\S]*?ET/g) || [];
-    if (btMatches.length > 0) {
-      btMatches.forEach(block => {
-        const tjMatches = block.match(/\(([^)]+)\)\s*Tj/g) || [];
-        tjMatches.forEach(m => {
-          const txt = m.replace(/^\(/, '').replace(/\)\s*Tj$/, '');
-          resumeText += txt + ' ';
-        });
-      });
-    }
-    
-    // Fallback: extract any readable ASCII strings >= 4 chars
-    if (resumeText.trim().length < 100) {
-      const asciiMatches = raw.match(/[\x20-\x7E]{4,}/g) || [];
-      resumeText = asciiMatches
-        .filter(s => !s.includes('obj') && !s.includes('stream') && !/^[\d\s.]+$/.test(s))
-        .join(' ')
-        .slice(0, 6000);
-    }
+    const buffer = Buffer.from(fileBase64, 'base64');
+    const raw = buffer.toString('latin1');
 
-    resumeText = resumeText.replace(/\s{3,}/g, ' ').trim().slice(0, 6000);
+    // Extract all printable ASCII strings of length >= 3
+    let chunks = [];
+    let current = '';
+    for (let i = 0; i < raw.length; i++) {
+      const code = raw.charCodeAt(i);
+      if (code >= 32 && code <= 126) {
+        current += raw[i];
+      } else {
+        if (current.length >= 3) chunks.push(current);
+        current = '';
+      }
+    }
+    if (current.length >= 3) chunks.push(current);
 
-    if (resumeText.length < 50) {
+    // Filter out PDF syntax noise
+    const noise = /^(obj|endobj|stream|endstream|xref|trailer|startxref|BT|ET|Tf|Tm|Td|TD|cm|re|W|n|q|Q|f|S|g|rg|RG|cs|CS|sc|SCN|Do|BMC|EMC|<<|>>)$/;
+    const resumeText = chunks
+      .filter(c => !noise.test(c.trim()))
+      .filter(c => !/^[\d\s.+\-*/=<>[\](){}]+$/.test(c))
+      .filter(c => c.trim().length > 2)
+      .join(' ')
+      .replace(/\s{2,}/g, ' ')
+      .trim()
+      .slice(0, 6000);
+
+    if (resumeText.length < 80) {
       return res.status(200).json({
         name: null, yoe: 0, education: 2,
         company: null, role: null, tech_stack: [],
-        _warning: 'Could not extract text from PDF. Please fill manually.'
+        _warning: 'PDF text extraction failed'
       });
     }
 
