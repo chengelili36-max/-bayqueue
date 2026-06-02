@@ -1,3 +1,5 @@
+import pdfParse from 'pdf-parse/lib/pdf-parse.js';
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -10,13 +12,17 @@ export default async function handler(req, res) {
     if (!fileBase64) return res.status(400).json({ error: 'No file data' });
 
     let resumeText = '';
-    try {
+    const isPDF = fileType === 'application/pdf' || fileName?.endsWith('.pdf');
+
+    if (isPDF) {
+      const buffer = Buffer.from(fileBase64, 'base64');
+      const parsed = await pdfParse(buffer);
+      resumeText = parsed.text;
+    } else {
       resumeText = Buffer.from(fileBase64, 'base64').toString('utf-8');
-    } catch (e) {
-      resumeText = fileBase64;
     }
 
-    resumeText = resumeText.replace(/[^\x20-\x7E\n\r\t\u4e00-\u9fff]/g, ' ').replace(/\s{3,}/g, ' ').slice(0, 6000);
+    resumeText = resumeText.replace(/\s{3,}/g, ' ').slice(0, 6000);
 
     const response = await fetch('https://api.deepseek.com/chat/completions', {
       method: 'POST',
@@ -30,7 +36,7 @@ export default async function handler(req, res) {
         temperature: 0.1,
         messages: [
           { role: 'system', content: 'You are a precise resume parser. Always return valid JSON only, no other text.' },
-          { role: 'user', content: `Extract from this resume and return ONLY valid JSON:\n{\n  "name": "full name or null",\n  "yoe": <integer years of experience>,\n  "education": <0=HighSchool,1=Associate,2=Bachelor,3=Master,4=PhD,5=MBA,6=Bootcamp>,\n  "company": "most recent company or null",\n  "role": "most recent title or null",\n  "tech_stack": ["skill1","skill2",...]\n}\n\nResume:\n${resumeText}` }
+          { role: 'user', content: `Extract from this resume and return ONLY valid JSON:\n{\n  "name": "full name or null",\n  "yoe": <integer total years of work experience>,\n  "education": <0=HighSchool,1=Associate,2=Bachelor,3=Master,4=PhD,5=MBA,6=Bootcamp>,\n  "company": "most recent company or null",\n  "role": "most recent job title or null",\n  "tech_stack": ["skill1","skill2",...]\n}\n\nResume:\n${resumeText}` }
         ]
       })
     });

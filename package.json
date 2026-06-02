@@ -1,0 +1,24 @@
+{
+  "name": "bayqueue",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chengelili36-max/-bayqueue.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/chengelili36-max/-bayqueue/issues"
+  },
+  "homepage": "https://github.com/chengelili36-max/-bayqueue#readme",
+  "dependencies": {
+    "pdf-parse": "^2.4.5"
+  }
+}
