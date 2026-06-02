@@ -10,38 +10,59 @@ export default async function handler(req, res) {
     if (!fileBase64) return res.status(400).json({ error: 'No file data' });
 
     const buffer = Buffer.from(fileBase64, 'base64');
-    const raw = buffer.toString('latin1');
 
-    // Extract all printable ASCII strings of length >= 3
-    let chunks = [];
-    let current = '';
-    for (let i = 0; i < raw.length; i++) {
-      const code = raw.charCodeAt(i);
-      if (code >= 32 && code <= 126) {
-        current += raw[i];
-      } else {
-        if (current.length >= 3) chunks.push(current);
-        current = '';
-      }
+    // Try to extract text from PDF stream objects
+    const raw = buffer.toString('binary');
+    let resumeText = '';
+
+    // Method 1: Extract text from PDF content streams
+    const streamRegex = /stream\r?\n([\s\S]*?)\r?\nendstream/g;
+    let match;
+    while ((match = streamRegex.exec(raw)) !== null) {
+      const streamContent = match[1];
+      // Look for text showing operators: Tj, TJ, '
+      const textMatches = streamContent.match(/\(([^\)\\]|\\.)*\)\s*(Tj|'|")/g) || [];
+      textMatches.forEach(tm => {
+        const inner = tm.match(/\(([^\)\\]|\\.)*\)/);
+        if (inner) {
+          const txt = inner[0].slice(1, -1)
+            .replace(/\\n/g, ' ')
+            .replace(/\\r/g, ' ')
+            .replace(/\\\(/g, '(')
+            .replace(/\\\)/g, ')')
+            .replace(/\\\\/g, '\\');
+          resumeText += txt + ' ';
+        }
+      });
+
+      // Also handle TJ arrays: [(text) num (text)] TJ
+      const tjArrays = streamContent.match(/\[([^\]]*)\]\s*TJ/g) || [];
+      tjArrays.forEach(tj => {
+        const parts = tj.match(/\(([^\)\\]|\\.)*\)/g) || [];
+        parts.forEach(p => {
+          resumeText += p.slice(1, -1).replace(/\\\(/g, '(').replace(/\\\)/g, ')') + ' ';
+        });
+      });
     }
-    if (current.length >= 3) chunks.push(current);
 
-    // Filter out PDF syntax noise
-    const noise = /^(obj|endobj|stream|endstream|xref|trailer|startxref|BT|ET|Tf|Tm|Td|TD|cm|re|W|n|q|Q|f|S|g|rg|RG|cs|CS|sc|SCN|Do|BMC|EMC|<<|>>)$/;
-    const resumeText = chunks
-      .filter(c => !noise.test(c.trim()))
-      .filter(c => !/^[\d\s.+\-*/=<>[\](){}]+$/.test(c))
-      .filter(c => c.trim().length > 2)
-      .join(' ')
-      .replace(/\s{2,}/g, ' ')
-      .trim()
-      .slice(0, 6000);
+    // Method 2: fallback - grab all ASCII strings
+    if (resumeText.trim().length < 100) {
+      const asciiReg = /[A-Za-z][A-Za-z0-9 ,.\-@+/(){}\[\]#&:;'"!?%$]{5,}/g;
+      const matches = raw.match(asciiReg) || [];
+      resumeText = matches
+        .filter(s => !/^(stream|endstream|xref|obj|endobj|trailer|Type|Subtype|Filter|Length|Width|Height|BitsPerComponent|ColorSpace|Producer|Creator|CreationDate|ModDate|Pages|MediaBox|Resources|Font|Encoding|BaseFont|Widths|FirstChar|LastChar|FontDescriptor)/.test(s))
+        .join(' ')
+        .slice(0, 6000);
+    }
 
+    resumeText = resumeText.replace(/\s{2,}/g, ' ').trim().slice(0, 6000);
+
+    // If still can't extract, return warning
     if (resumeText.length < 80) {
       return res.status(200).json({
         name: null, yoe: 0, education: 2,
         company: null, role: null, tech_stack: [],
-        _warning: 'PDF text extraction failed'
+        _warning: 'Could not extract PDF text'
       });
     }
 
