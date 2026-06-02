@@ -1048,15 +1048,15 @@ async function parseResume(file) {
   }
 }
 
-let _pdfjsLib = null;
+let _pdfjsCache = null;
 async function loadPDFJS() {
-  if (_pdfjsLib) return _pdfjsLib;
+  if (_pdfjsCache) return _pdfjsCache;
   return new Promise((resolve, reject) => {
     const script = document.createElement('script');
     script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
     script.onload = () => {
       pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-      _pdfjsLib = pdfjsLib;
+      _pdfjsCache = window.pdfjsLib;
       resolve(pdfjsLib);
     };
     script.onerror = reject;
