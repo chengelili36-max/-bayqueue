@@ -196,6 +196,20 @@ footer { border-top: 1px solid var(--border); padding: 28px 48px; display: flex;
   .score-cards { grid-template-columns: repeat(3, 1fr); }
   .nav-stat { display: none; }
 }
+/* ── RESUME TABS ── */
+.resume-tabs {
+  display: flex; gap: 0; margin-bottom: 0;
+  border-bottom: none;
+}
+.resume-tab {
+  flex: 1; padding: 10px; font-family: var(--mono); font-size: 12px;
+  background: var(--surface2); border: 1px solid var(--border);
+  color: var(--muted); cursor: pointer; transition: all 0.15s;
+}
+.resume-tab:first-child { border-right: none; }
+.resume-tab.active { background: var(--bg); color: var(--accent); border-bottom-color: var(--bg); }
+.resume-tab:not(.active):hover { color: var(--text); }
+
 /* ── RESUME UPLOAD ── */
 .resume-upload-box {
   border: 1.5px dashed var(--border2);
@@ -378,13 +392,52 @@ footer { border-top: 1px solid var(--border); padding: 28px 48px; display: flex;
       <p data-zh="我们用这些数据计算你在湾区求职者中的排名位置" data-en="We use this to calculate your position among Bay Area job seekers">我们用这些数据计算你在湾区求职者中的排名位置</p>
     </div>
 
-    <!-- RESUME UPLOAD -->
-    <div class="resume-upload-box" id="resumeBox">
-      <input type="file" id="resumeFile" accept=".pdf,.doc,.docx,.txt" style="display:none" onchange="handleResumeUpload(this)">
+    <!-- RESUME INPUT: TABS for paste vs upload -->
+    <div class="resume-tabs">
+      <button class="resume-tab active" id="tabPaste" onclick="switchTab('paste')" type="button">
+        <span data-zh="📋 粘贴简历文字" data-en="📋 Paste Resume Text">📋 粘贴简历文字</span>
+      </button>
+      <button class="resume-tab" id="tabUpload" onclick="switchTab('upload')" type="button">
+        <span data-zh="📄 上传 PDF" data-en="📄 Upload PDF">📄 上传 PDF</span>
+      </button>
+    </div>
+
+    <!-- PASTE TAB -->
+    <div class="resume-upload-box" id="pasteBox">
+      <div id="pasteIdle">
+        <label style="font-family:var(--mono);font-size:10px;letter-spacing:.15em;color:var(--muted);text-transform:uppercase;"
+          data-zh="将简历内容复制粘贴到此处" data-en="Copy & paste your resume content here">将简历内容复制粘贴到此处</label>
+        <textarea id="resumeTextarea"
+          placeholder="粘贴你的简历内容（从 LinkedIn 或 PDF 复制文字）..."
+          data-placeholder-zh="粘贴你的简历内容（从 LinkedIn 或 PDF 复制文字）..."
+          data-placeholder-en="Paste your resume content (copy text from LinkedIn or PDF)..."
+          style="width:100%;min-height:160px;margin-top:10px;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:12px;font-family:var(--sans);font-size:13px;resize:vertical;outline:none;line-height:1.6;"
+          onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+        <button class="resume-btn" type="button" onclick="parseResumeText()" style="margin-top:12px;">
+          <span data-zh="→ AI 自动识别" data-en="→ AI Auto-extract">→ AI 自动识别</span>
+        </button>
+        <div style="font-size:11px;color:var(--muted);margin-top:8px;" data-zh="💡 LinkedIn → Me → 导出 PDF → 用预览打开 → 全选复制" data-en="💡 LinkedIn → Me → Save to PDF → open in Preview → select all → copy">💡 LinkedIn → Me → 导出 PDF → 用预览打开 → 全选复制</div>
+      </div>
+      <div class="resume-loading" id="pasteLoading" style="display:none">
+        <div class="resume-spinner"></div>
+        <div class="resume-loading-text" data-zh="AI 正在解析简历..." data-en="AI is parsing...">AI 正在解析简历...</div>
+      </div>
+      <div class="resume-done" id="pasteDone" style="display:none">
+        <div class="resume-done-icon">✓</div>
+        <div class="resume-done-text" data-zh="解析完成，已自动填写表单" data-en="Parsed! Form auto-filled">解析完成，已自动填写表单</div>
+        <button class="resume-reupload" type="button" onclick="resetPaste()">
+          <span data-zh="重新粘贴" data-en="Re-paste">重新粘贴</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- UPLOAD TAB -->
+    <div class="resume-upload-box" id="uploadBox" style="display:none">
+      <input type="file" id="resumeFile" accept=".pdf,.txt" style="display:none" onchange="handleResumeUpload(this)">
       <div class="resume-idle" id="resumeIdle">
         <div class="resume-icon">📄</div>
-        <div class="resume-title" data-zh="上传简历，自动填写表单" data-en="Upload Resume — Auto-fill Form">上传简历，自动填写表单</div>
-        <div class="resume-sub" data-zh="支持 PDF · 拖拽或点击上传 · AI 自动识别 YoE、技术栈、学历" data-en="PDF supported · Drag & drop or click · AI extracts YoE, skills, education">支持 PDF · 拖拽或点击上传 · AI 自动识别 YoE、技术栈、学历</div>
+        <div class="resume-title" data-zh="上传简历 PDF" data-en="Upload Resume PDF">上传简历 PDF</div>
+        <div class="resume-sub" data-zh="仅支持文字版 PDF（非扫描件）" data-en="Text-based PDF only (not scanned images)">仅支持文字版 PDF（非扫描件）</div>
         <button class="resume-btn" type="button" onclick="document.getElementById('resumeFile').click()">
           <span data-zh="选择文件" data-en="Choose File">选择文件</span>
         </button>
@@ -874,6 +927,50 @@ function copyLink() {
   });
 }
 
+// ── RESUME TABS ──
+function switchTab(tab) {
+  document.getElementById('tabPaste').classList.toggle('active', tab === 'paste');
+  document.getElementById('tabUpload').classList.toggle('active', tab === 'upload');
+  document.getElementById('pasteBox').style.display = tab === 'paste' ? '' : 'none';
+  document.getElementById('uploadBox').style.display = tab === 'upload' ? '' : 'none';
+}
+
+function resetPaste() {
+  document.getElementById('pasteIdle').style.display = '';
+  document.getElementById('pasteLoading').style.display = 'none';
+  document.getElementById('pasteDone').style.display = 'none';
+  document.getElementById('resumeTextarea').value = '';
+}
+
+async function parseResumeText() {
+  const text = document.getElementById('resumeTextarea').value.trim();
+  if (!text || text.length < 50) {
+    alert(currentLang === 'zh' ? '请先粘贴简历内容' : 'Please paste your resume content first');
+    return;
+  }
+  document.getElementById('pasteIdle').style.display = 'none';
+  document.getElementById('pasteLoading').style.display = '';
+  document.getElementById('pasteDone').style.display = 'none';
+
+  try {
+    const response = await fetch('/api/parse-resume', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ resumeText: text })
+    });
+    if (!response.ok) throw new Error('API error ' + response.status);
+    const parsed = await response.json();
+    autofillForm(parsed);
+    document.getElementById('pasteLoading').style.display = 'none';
+    document.getElementById('pasteDone').style.display = '';
+  } catch (err) {
+    console.error(err);
+    document.getElementById('pasteLoading').style.display = 'none';
+    document.getElementById('pasteIdle').style.display = '';
+    alert(currentLang === 'zh' ? '解析失败，请重试' : 'Parse failed, please retry');
+  }
+}
+
 // ── RESUME UPLOAD & PARSE ──
 
 // drag & drop
@@ -909,24 +1006,37 @@ async function parseResume(file) {
   document.getElementById('resumeDone').style.display = 'none';
 
   try {
-    const base64 = await fileToBase64(file);
+    // Use PDF.js to extract text in the browser
+    const arrayBuffer = await file.arrayBuffer();
+    const pdfjsLib = await loadPDFJS();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
 
-    // Call our Vercel serverless proxy (keeps API key secret)
+    let fullText = '';
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      const pageText = content.items.map(item => item.str).join(' ');
+      fullText += pageText + '\n';
+    }
+
+    console.log('PDF extracted text length:', fullText.length);
+    console.log('PDF text preview:', fullText.slice(0, 200));
+
+    if (fullText.trim().length < 50) {
+      throw new Error('Could not extract text from PDF');
+    }
+
+    // Send extracted text to backend
     const response = await fetch('/api/parse-resume', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        fileBase64: base64,
-        fileType: file.type,
-        fileName: file.name
-      })
+      body: JSON.stringify({ resumeText: fullText.slice(0, 8000) })
     });
 
     if (!response.ok) throw new Error('API error ' + response.status);
     const parsed = await response.json();
 
     autofillForm(parsed);
-
     document.getElementById('resumeLoading').style.display = 'none';
     document.getElementById('resumeDone').style.display = '';
 
@@ -934,8 +1044,24 @@ async function parseResume(file) {
     console.error('Resume parse error:', err);
     document.getElementById('resumeLoading').style.display = 'none';
     document.getElementById('resumeIdle').style.display = '';
-    alert(currentLang === 'zh' ? '解析失败，请手动填写或重试' : 'Parse failed — please fill manually or retry');
+    alert(currentLang === 'zh' ? '解析失败，请使用粘贴方式或手动填写' : 'Parse failed — try paste mode or fill manually');
   }
+}
+
+let _pdfjsLib = null;
+async function loadPDFJS() {
+  if (_pdfjsLib) return _pdfjsLib;
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+    script.onload = () => {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      _pdfjsLib = pdfjsLib;
+      resolve(pdfjsLib);
+    };
+    script.onerror = reject;
+    document.head.appendChild(script);
+  });
 }
 
 function autofillForm(data) {
