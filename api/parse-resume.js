@@ -1,5 +1,4 @@
 export default async function handler(req, res) {
-  // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -10,59 +9,40 @@ export default async function handler(req, res) {
     const { fileBase64, fileType, fileName } = req.body;
     if (!fileBase64) return res.status(400).json({ error: 'No file data' });
 
-    const isPDF = fileType === 'application/pdf' || fileName?.endsWith('.pdf');
+    let resumeText = '';
+    try {
+      resumeText = Buffer.from(fileBase64, 'base64').toString('utf-8');
+    } catch (e) {
+      resumeText = fileBase64;
+    }
 
-    const messages = isPDF
-      ? [{
-          role: 'user',
-          content: [
-            {
-              type: 'document',
-              source: { type: 'base64', media_type: 'application/pdf', data: fileBase64 }
-            },
-            {
-              type: 'text',
-              text: `Extract the following from this resume and return ONLY a valid JSON object, no explanation, no markdown:
-{
-  "name": "full name or null",
-  "yoe": <integer, total years of work experience>,
-  "education": <0=HighSchool, 1=Associate, 2=Bachelor, 3=Master, 4=PhD, 5=MBA, 6=Bootcamp>,
-  "company": "most recent company name or null",
-  "role": "most recent job title or null",
-  "tech_stack": ["skill1", "skill2", ...] (every technical skill, language, framework, tool, platform found)
-}`
-            }
-          ]
-        }]
-      : [{
-          role: 'user',
-          content: `Extract from this resume text and return ONLY a valid JSON object, no explanation:\n{\n  "name": "full name or null",\n  "yoe": <integer>,\n  "education": <0=HighSchool,1=Associate,2=Bachelor,3=Master,4=PhD,5=MBA,6=Bootcamp>,\n  "company": "most recent company or null",\n  "role": "most recent title or null",\n  "tech_stack": ["skill1","skill2",...]\n}\nResume:\n${Buffer.from(fileBase64, 'base64').toString('utf-8').slice(0, 8000)}`
-        }];
+    resumeText = resumeText.replace(/[^\x20-\x7E\n\r\t\u4e00-\u9fff]/g, ' ').replace(/\s{3,}/g, ' ').slice(0, 6000);
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetch('https://api.deepseek.com/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01'
+        'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'deepseek-chat',
         max_tokens: 1024,
-        messages
+        temperature: 0.1,
+        messages: [
+          { role: 'system', content: 'You are a precise resume parser. Always return valid JSON only, no other text.' },
+          { role: 'user', content: `Extract from this resume and return ONLY valid JSON:\n{\n  "name": "full name or null",\n  "yoe": <integer years of experience>,\n  "education": <0=HighSchool,1=Associate,2=Bachelor,3=Master,4=PhD,5=MBA,6=Bootcamp>,\n  "company": "most recent company or null",\n  "role": "most recent title or null",\n  "tech_stack": ["skill1","skill2",...]\n}\n\nResume:\n${resumeText}` }
+        ]
       })
     });
 
     const data = await response.json();
     if (!response.ok) return res.status(500).json({ error: data });
 
-    const text = data.content?.[0]?.text || '';
+    const text = data.choices?.[0]?.message?.content || '';
     const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) return res.status(500).json({ error: 'No JSON in response', raw: text });
+    if (!jsonMatch) return res.status(500).json({ error: 'No JSON', raw: text });
 
-    const parsed = JSON.parse(jsonMatch[0]);
-    return res.status(200).json(parsed);
-
+    return res.status(200).json(JSON.parse(jsonMatch[0]));
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
