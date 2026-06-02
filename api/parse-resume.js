@@ -6,63 +6,28 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    const { fileBase64, fileType, fileName } = req.body;
-    if (!fileBase64) return res.status(400).json({ error: 'No file data' });
+    const { resumeText, fileBase64, fileType, fileName } = req.body;
 
-    const buffer = Buffer.from(fileBase64, 'base64');
-
-    // Try to extract text from PDF stream objects
-    const raw = buffer.toString('binary');
-    let resumeText = '';
-
-    // Method 1: Extract text from PDF content streams
-    const streamRegex = /stream\r?\n([\s\S]*?)\r?\nendstream/g;
-    let match;
-    while ((match = streamRegex.exec(raw)) !== null) {
-      const streamContent = match[1];
-      // Look for text showing operators: Tj, TJ, '
-      const textMatches = streamContent.match(/\(([^\)\\]|\\.)*\)\s*(Tj|'|")/g) || [];
-      textMatches.forEach(tm => {
-        const inner = tm.match(/\(([^\)\\]|\\.)*\)/);
-        if (inner) {
-          const txt = inner[0].slice(1, -1)
-            .replace(/\\n/g, ' ')
-            .replace(/\\r/g, ' ')
-            .replace(/\\\(/g, '(')
-            .replace(/\\\)/g, ')')
-            .replace(/\\\\/g, '\\');
-          resumeText += txt + ' ';
-        }
-      });
-
-      // Also handle TJ arrays: [(text) num (text)] TJ
-      const tjArrays = streamContent.match(/\[([^\]]*)\]\s*TJ/g) || [];
-      tjArrays.forEach(tj => {
-        const parts = tj.match(/\(([^\)\\]|\\.)*\)/g) || [];
-        parts.forEach(p => {
-          resumeText += p.slice(1, -1).replace(/\\\(/g, '(').replace(/\\\)/g, ')') + ' ';
-        });
-      });
-    }
-
-    // Method 2: fallback - grab all ASCII strings
-    if (resumeText.trim().length < 100) {
-      const asciiReg = /[A-Za-z][A-Za-z0-9 ,.\-@+/(){}\[\]#&:;'"!?%$]{5,}/g;
-      const matches = raw.match(asciiReg) || [];
-      resumeText = matches
-        .filter(s => !/^(stream|endstream|xref|obj|endobj|trailer|Type|Subtype|Filter|Length|Width|Height|BitsPerComponent|ColorSpace|Producer|Creator|CreationDate|ModDate|Pages|MediaBox|Resources|Font|Encoding|BaseFont|Widths|FirstChar|LastChar|FontDescriptor)/.test(s))
+    // Get text content - either direct text paste or extract from file
+    let text = '';
+    if (resumeText && resumeText.trim().length > 50) {
+      text = resumeText.trim().slice(0, 8000);
+    } else if (fileBase64) {
+      const buffer = Buffer.from(fileBase64, 'base64');
+      const raw = buffer.toString('binary');
+      // Extract readable ASCII strings
+      const matches = raw.match(/[A-Za-z][A-Za-z0-9 ,.\-@+/(){}\[\]#&:;'"!?%$]{4,}/g) || [];
+      text = matches
+        .filter(s => !/^(stream|endstream|xref|obj|endobj|trailer|Type|Subtype|Filter|Length|Font|Encoding|BaseFont|Producer|Creator)/.test(s))
         .join(' ')
         .slice(0, 6000);
     }
 
-    resumeText = resumeText.replace(/\s{2,}/g, ' ').trim().slice(0, 6000);
-
-    // If still can't extract, return warning
-    if (resumeText.length < 80) {
+    if (!text || text.length < 50) {
       return res.status(200).json({
         name: null, yoe: 0, education: 2,
         company: null, role: null, tech_stack: [],
-        _warning: 'Could not extract PDF text'
+        _warning: 'Not enough text to parse'
       });
     }
 
@@ -78,17 +43,19 @@ export default async function handler(req, res) {
         temperature: 0.1,
         messages: [
           { role: 'system', content: 'You are a precise resume parser. Always return valid JSON only, no other text.' },
-          { role: 'user', content: `Extract from this resume and return ONLY valid JSON:\n{\n  "name": "full name or null",\n  "yoe": <integer total years of work experience>,\n  "education": <0=HighSchool,1=Associate,2=Bachelor,3=Master,4=PhD,5=MBA,6=Bootcamp>,\n  "company": "most recent company or null",\n  "role": "most recent job title or null",\n  "tech_stack": ["skill1","skill2",...]\n}\n\nResume:\n${resumeText}` }
+          { role: 'user', content: `Extract from this resume and return ONLY valid JSON, no markdown:\n{\n  "name": "full name or null",\n  "yoe": <integer total years of work experience>,\n  "education": <0=HighSchool,1=Associate,2=Bachelor,3=Master,4=PhD,5=MBA,6=Bootcamp>,\n  "company": "most recent company or null",\n  "role": "most recent job title or null",\n  "tech_stack": ["skill1","skill2",...]\n}\n\nResume:\n${text}` }
         ]
       })
     });
 
     const data = await response.json();
+    console.log('DeepSeek status:', response.status);
+    console.log('DeepSeek response:', JSON.stringify(data).slice(0, 500));
     if (!response.ok) return res.status(500).json({ error: data });
 
-    const text = data.choices?.[0]?.message?.content || '';
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) return res.status(500).json({ error: 'No JSON', raw: text });
+    const content = data.choices?.[0]?.message?.content || '';
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) return res.status(500).json({ error: 'No JSON', raw: content });
 
     return res.status(200).json(JSON.parse(jsonMatch[0]));
   } catch (err) {
