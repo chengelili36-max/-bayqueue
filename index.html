@@ -4,8 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Bay Area Job Queue — 湾区求职排名</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script><link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+if (typeof pdfjsLib !== 'undefined') {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+}
+</script>
 <style>
 :root {
   --bg: #0a0a0f;
@@ -558,6 +564,7 @@ footer { border-top: 1px solid var(--border); padding: 28px 48px; display: flex;
 <div id="result">
   <div class="result-wrap">
     <h2 data-zh="你在队列中的位置" data-en="Your Position in the Queue">你在队列中的位置</h2>
+    <div id="rQueueLabel" style="font-family:var(--mono);font-size:12px;letter-spacing:0.15em;color:var(--accent2);text-transform:uppercase;margin-bottom:16px;">—</div>
     <div class="queue-big" id="rQueueNum">#—</div>
     <div class="queue-sub" id="rQueueSub">
       共 <span id="rTotal">2,847</span> 名活跃求职者 · 你击败了 <span id="rPercentile" style="color:var(--accent)">—</span>% 的人
@@ -796,6 +803,50 @@ async function sbFetch(path, options = {}) {
   return text ? JSON.parse(text) : null;
 }
 
+// ── QUEUE CATEGORY ──
+const QUEUE_CATEGORIES = {
+  'SWE': {
+    zh: '软件工程师队列',
+    en: 'Software Engineer Queue',
+    keywords: ['software engineer','swe','frontend','backend','full stack','fullstack','mobile','ios','android','embedded','systems engineer']
+  },
+  'DATA': {
+    zh: '数据 & AI 队列',
+    en: 'Data & AI Queue',
+    keywords: ['data scientist','data analyst','data engineer','machine learning','ml engineer','ai engineer','llm','research scientist','analytics','business intelligence']
+  },
+  'PM': {
+    zh: '产品经理队列',
+    en: 'Product Manager Queue',
+    keywords: ['product manager','pm','senior product','technical program manager','tpm','program manager']
+  },
+  'DESIGN': {
+    zh: '设计师队列',
+    en: 'Design Queue',
+    keywords: ['designer','ux','ui','product designer','ux researcher','design']
+  },
+  'DEVOPS': {
+    zh: '基础设施队列',
+    en: 'Infrastructure Queue',
+    keywords: ['devops','infrastructure','sre','site reliability','platform engineer','cloud engineer','security engineer']
+  },
+  'OTHER': {
+    zh: '其他职位队列',
+    en: 'Other Roles Queue',
+    keywords: []
+  }
+};
+
+function getRoleCategory(role) {
+  if (!role) return 'OTHER';
+  const r = role.toLowerCase();
+  for (const [cat, info] of Object.entries(QUEUE_CATEGORIES)) {
+    if (cat === 'OTHER') continue;
+    if (info.keywords.some(k => r.includes(k))) return cat;
+  }
+  return 'OTHER';
+}
+
 // ── SCORING ──
 const eduScores = [0, 5, 18, 24, 30, 22, 10];
 let lastResult = null;
@@ -810,7 +861,6 @@ function computeScore(yoe, eduIdx, activeChips) {
 }
 
 async function calculateRanking() {
-  // disable button & show loading
   const btn = document.querySelector('.submit-btn');
   const originalText = btn.innerHTML;
   btn.innerHTML = currentLang === 'zh' ? '⏳ 计算中...' : '⏳ Calculating...';
@@ -825,30 +875,45 @@ async function calculateRanking() {
   const techStack = [...activeChips].map(c => c.textContent.trim());
 
   const { total, yoeScore, eduScore } = computeScore(yoe, eduIdx, activeChips);
+  const queueCategory = getRoleCategory(role);
+  const queueInfo = QUEUE_CATEGORIES[queueCategory];
 
   try {
-    // 1. Insert this user
+    // 1. Insert this user with queue_category
     await sbFetch('job_seekers', {
       method: 'POST',
       prefer: 'return=minimal',
-      body: { name: name || null, company: company || null, education: eduIdx, role: role || null, yoe, tech_stack: techStack, score: total }
+      body: {
+        name: name || null,
+        company: company || null,
+        education: eduIdx,
+        role: role || null,
+        yoe,
+        tech_stack: techStack,
+        score: total,
+        queue_category: queueCategory
+      }
     });
 
-    // 2. Get total count and rank (how many have score >= this user's score)
-    const countRes  = await sbFetch('job_seekers?select=id&score=gte.' + total);
-    const totalRes  = await sbFetch('job_seekers?select=id');
+    // 2. Rank within same queue category
+    const countRes   = await sbFetch(`job_seekers?select=id&queue_category=eq.${queueCategory}&score=gte.${total}`);
+    const totalRes   = await sbFetch(`job_seekers?select=id&queue_category=eq.${queueCategory}`);
     const totalUsers = totalRes.length;
-    const position  = countRes.length; // people with >= same score = position
-    const ahead     = position - 1;
+    const position   = countRes.length;
+    const ahead      = position - 1;
     const percentile = Math.min(99, Math.round(((totalUsers - position) / Math.max(totalUsers, 1)) * 100));
 
-    lastResult = { position, total, yoeScore, eduScore, percentile, ahead, totalUsers };
+    lastResult = { position, total, yoeScore, eduScore, percentile, ahead, totalUsers, queueCategory, queueInfo };
 
     // 3. Show result
     document.getElementById('result').style.display = 'block';
     document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
 
     setTimeout(() => {
+      // Update queue label
+      const qLabel = currentLang === 'zh' ? queueInfo.zh : queueInfo.en;
+      document.getElementById('rQueueLabel').textContent = qLabel;
+
       document.getElementById('rQueueNum').textContent = '#' + position.toLocaleString();
       document.getElementById('rTotal').textContent = totalUsers.toLocaleString();
       document.getElementById('rPercentile').textContent = percentile;
@@ -864,14 +929,15 @@ async function calculateRanking() {
 
   } catch (err) {
     console.error(err);
-    // fallback to local calculation if DB fails
-    const totalFallback = 2847;
+    const totalFallback = 500;
     const pct = Math.min(97, Math.round((total / 100) * 90 + 10));
     const pos = Math.max(1, Math.round(totalFallback * (1 - pct / 100)));
-    lastResult = { position: pos, total, yoeScore, eduScore, percentile: pct, ahead: pos - 1, totalUsers: totalFallback };
+    lastResult = { position: pos, total, yoeScore, eduScore, percentile: pct, ahead: pos - 1, totalUsers: totalFallback, queueCategory, queueInfo };
     document.getElementById('result').style.display = 'block';
     document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
     setTimeout(() => {
+      const qLabel = currentLang === 'zh' ? queueInfo.zh : queueInfo.en;
+      document.getElementById('rQueueLabel').textContent = qLabel;
       document.getElementById('rQueueNum').textContent = '#' + pos.toLocaleString();
       document.getElementById('rTotal').textContent = totalFallback.toLocaleString();
       document.getElementById('rPercentile').textContent = pct;
@@ -892,14 +958,22 @@ async function calculateRanking() {
 
 function updateResultLabels() {
   if (!lastResult) return;
-  const { ahead, totalUsers, percentile } = lastResult;
+  const { ahead, totalUsers, percentile, queueInfo } = lastResult;
+
+  // Update queue label
+  if (queueInfo) {
+    const qLabel = currentLang === 'zh' ? queueInfo.zh : queueInfo.en;
+    const el = document.getElementById('rQueueLabel');
+    if (el) el.textContent = qLabel;
+  }
+
   if (currentLang === 'zh') {
     document.getElementById('rAheadLabel').innerHTML = '前面有 <strong id="rAhead">' + ahead.toLocaleString() + '</strong> 人';
   } else {
     document.getElementById('rAheadLabel').innerHTML = '<strong id="rAhead">' + ahead.toLocaleString() + '</strong> people ahead of you';
   }
   const sub = document.getElementById('rQueueSub');
-  const total = (totalUsers || 2847).toLocaleString();
+  const total = (totalUsers || 500).toLocaleString();
   const pct = percentile;
   if (currentLang === 'zh') {
     sub.innerHTML = '共 <span id="rTotal">' + total + '</span> 名活跃求职者 · 你击败了 <span id="rPercentile" style="color:var(--accent)">' + pct + '</span>% 的人';
@@ -1050,7 +1124,7 @@ async function parseResume(file) {
 
 async function loadPDFJS() {
   if (window.pdfjsLib) return window.pdfjsLib;
-  throw new Error("PDF.js not loaded");
+  throw new Error('PDF.js not loaded');
 }
 
 function autofillForm(data) {
